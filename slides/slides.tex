@@ -829,28 +829,28 @@ UPDATE users SET first_name =
 \end{block}
 
 
-\framebreak
+% \framebreak
 
-\begin{block}{SIN EMBARGO...}
- A veces {\bf un esquema es conveniente}
-\begin{itemize}
-\item Facilita el desarrollo y evita inconsistencias
-  \begin{itemize}
-  \item {\tt Mongoose} para MongoDB:
-  \end{itemize}
-\end{itemize}
-\begin{lstlisting}[language=Java]
-var Comment = new Schema({
-  name: { type: String, default: 'Anonymous' },
-  date: { type: Date, default: Date.now },
-  text: Buffer
-});
-// a setter with on-line modification
-Comment.path('name').set(function (v) {
-  return capitalize(v);
-});
-\end{lstlisting}
-\end{block}
+% \begin{block}{SIN EMBARGO...}
+%  A veces {\bf un esquema es conveniente}
+% \begin{itemize}
+% \item Facilita el desarrollo y evita inconsistencias
+%   \begin{itemize}
+%   \item {\tt Mongoose} para MongoDB:
+%   \end{itemize}
+% \end{itemize}
+% \begin{lstlisting}[language=Java]
+% var Comment = new Schema({
+%   name: { type: String, default: 'Anonymous' },
+%   date: { type: Date, default: Date.now },
+%   text: Buffer
+% });
+% // a setter with on-line modification
+% Comment.path('name').set(function (v) {
+%   return capitalize(v);
+% });
+% \end{lstlisting}
+% \end{block}
 \end{frame}
 
 
