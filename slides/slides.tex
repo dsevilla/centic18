@@ -245,10 +245,10 @@ morestring=[b]"
 }
 
 \hypersetup{%
-  pdftitle={Tutorial Tecnologías NoSQL},%
-  pdfauthor={Diego Sevilla Ruiz},
-  pdfsubject={NoSQL, JISBD'17},
-  pdfkeywords={nosql, jisbd17}
+  pdftitle={Bases de Datos NoSQL},%
+  pdfauthor={Jesús García Molina, Diego Sevilla Ruiz},
+  pdfsubject={NoSQL, CENTIC'18},
+  pdfkeywords={nosql, centic18}
 }
 
 
@@ -312,48 +312,13 @@ Universidad de Murcia\\
 \titlepage % Print the title page as the first slide
 \end{frame}
 
-\section{Introducción}
+%\section{Introducción}
 
 % \begin{frame}
 % \frametitle{Índice}
 % \tableofcontents[]
 % \end{frame}
 
-\subsection{¿Qué veremos aquí?}
-
-\begin{frame}[allowframebreaks]
-  \frametitle{¿Qué veremos aquí?}
-  \begin{block}{¿Qué es NoSQL?}
-  \end{block}
-  \begin{block}{¿Por qué NoSQL?}
-  \end{block}
-  \begin{block}{Modelado de datos en NoSQL}
-  \end{block}
-  \begin{block}{Desventajas de NoSQL}
-  \end{block}
-\framebreak
-  \begin{block}{Tipos de BBDD NoSQL}
-    \begin{itemize}
-    \item Key/Value
-    \item Documentos
-    \item Columnares ({\em wide column})
-    \item Grafos
-    \end{itemize}
-  \end{block}
-\end{frame}
-
-\begin{frame}
-  \frametitle{¿Qué {\em NO\/} veremos aquí?}
-  \begin{alertblock}{SQL vs. NoSQL}
-    Al menos no una batalla
-  \end{alertblock}
-  \begin{alertblock}{Tecnologías en profundidad}
-    Por falta de tiempo
-  \end{alertblock}
-  \begin{alertblock}{Cuestiones avanzadas}
-    Replicación, seguridad, etc.
-  \end{alertblock}
-\end{frame}
 
 % \subsection{Un inciso}
 
@@ -492,7 +457,7 @@ Universidad de Murcia\\
 \section{Introducción a los sistemas NoSQL}
 
 \begin{frame}
-  \frametitle{Introducción a NoSQL}
+  \frametitle{NoSQL}
 \begin{itemize}
 % \item Sobre los \~{}2010s, se renueva la búsqueda de la escalabilidad, con
 %   el abaratamiento del {\em hardware}
@@ -513,15 +478,15 @@ Universidad de Murcia\\
   \end{itemize}
 \end{frame}
 
-\begin{frame}
-  \frametitle{NoSQL}
-\centering\includegraphics[width=\textwidth]{img/nosqldatabases3}
-\end{frame}
+% \begin{frame}
+%   \frametitle{NoSQL}
+% \centering\includegraphics[width=\textwidth]{img/nosqldatabases3}
+% \end{frame}
 
-\begin{frame}
-  \frametitle{NoSQL}
-\centering\includegraphics[width=\textwidth]{img/nosqldatabases}
-\end{frame}
+% \begin{frame}
+%   \frametitle{NoSQL}
+% \centering\includegraphics[width=\textwidth]{img/nosqldatabases}
+% \end{frame}
 
 \begin{frame}[allowframebreaks]
   \frametitle{NoSQL -- ¿Por qué se plantearon?}
@@ -561,80 +526,81 @@ Universidad de Murcia\\
   {\itshape\bfseries Schemaless}
 \item Surgidos de la comunidad para solucionar problemas, y muchas de
   ellas son {\bf libres/{\itshape open source}}
-\item Diseño basado en {\bf procesamiento distribuido}
+\item Diseñadas \ra{} {\bf procesamiento distribuido}
 \item Principios funcionales \ra{} {\bf MapReduce}
+\item Generalmente implementan {\bf consistencia relajada}
 \end{itemize}
 
-\framebreak
+% \framebreak
 
-\begin{block}{Categorías de NoSQL}
-    \begin{itemize}
-    \item Bases de datos Key-Value
-    \item Bases de datos Documentales
-    \item Bases de datos columnares
-    \item Bases de datos de grafos
-    \item Bases de datos de arrays
-    \end{itemize}
-\end{block}
+% \begin{block}{Categorías de NoSQL}
+%     \begin{itemize}
+%     \item Bases de datos Key-Value
+%     \item Bases de datos Documentales
+%     \item Bases de datos columnares
+%     \item Bases de datos de grafos
+%     \item Bases de datos de arrays
+%     \end{itemize}
+% \end{block}
 \end{frame}
 
 
-\begin{frame}
-  \frametitle{Evolución desde el modelo relacional}
-\begin{itemize}
-\item El {\bf modelo relacional} $\Rightarrow$ {\bf predominante en los
-  últimos~\~{}30~años}
-\item Tiene sus raíces en el denominado {\em business data processing},
-  procesamiento de transacciones y {\em batch}
-\item Propuesto por Codd en los~70, {\bf de alto nivel}
-\item Actualmente los {\bf sistemas SQL están muy optimizados}:
-\begin{itemize}
-\item el {\bf grado de implantación es mayoritario}
-\item para el 99\% de los problemas (que caben en un ordenador) es
-  eficiente y adecuado
-\end{itemize}
-\end{itemize}
-\end{frame}
+% \begin{frame}
+%   \frametitle{Evolución desde el modelo relacional}
+% \begin{itemize}
+% \item El {\bf modelo relacional} $\Rightarrow$ {\bf predominante en los
+%   últimos~\~{}30~años}
+% \item Tiene sus raíces en el denominado {\em business data processing},
+%   procesamiento de transacciones y {\em batch}
+% \item Propuesto por Codd en los~70, {\bf de alto nivel}
+% \item Actualmente los {\bf sistemas SQL están muy optimizados}:
+% \begin{itemize}
+% \item el {\bf grado de implantación es mayoritario}
+% \item para el 99\% de los problemas (que caben en un ordenador) es
+%   eficiente y adecuado
+% \end{itemize}
+% \end{itemize}
+% \end{frame}
 
-% http://db-engines.com/en/ranking/
+% % http://db-engines.com/en/ranking/
 
 
-\begin{frame}
-  \frametitle{Adopción de NoSQL}
-Twitter cambiando a Cassandra por~2010\\
-Cassandra desarrollada en Facebook en~2009\\
-\includegraphics[width=\textwidth]{img/twitter-cassandra}
-\end{frame}
+% \begin{frame}
+%   \frametitle{Adopción de NoSQL}
+% Twitter cambiando a Cassandra por~2010\\
+% Cassandra desarrollada en Facebook en~2009\\
+% \includegraphics[width=\textwidth]{img/twitter-cassandra}
+% \end{frame}
 
-\begin{frame}
-  \frametitle{Adopción NoSQL. Ranking julio 2017}
-\framesubtitle{Fuente: \url{http://db-engines.com/en/ranking/}}
-\vspace*{.1ex}
-\centering\includegraphics[width=.8\textwidth]{img/ranking-bbdd}
-\end{frame}
+% \begin{frame}
+%   \frametitle{Adopción NoSQL. Ranking julio 2017}
+% \framesubtitle{Fuente: \url{http://db-engines.com/en/ranking/}}
+% \vspace*{.1ex}
+% \centering\includegraphics[width=.8\textwidth]{img/ranking-bbdd}
+% \end{frame}
 
-\begin{frame}
-\frametitle{Adopción NoSQL.Tendencia julio 2017}
-\framesubtitle{Fuente: \url{http://db-engines.com/en/ranking/}}
-\includegraphics[width=\textwidth]{img/nosql-database-ranking}
-\end{frame}
+% \begin{frame}
+% \frametitle{Adopción NoSQL.Tendencia julio 2017}
+% \framesubtitle{Fuente: \url{http://db-engines.com/en/ranking/}}
+% \includegraphics[width=\textwidth]{img/nosql-database-ranking}
+% \end{frame}
 
-\begin{frame}
-  \frametitle{Adopción NoSQL. Análisis}
-\begin{alertblock}{Análisis}
-\begin{itemize}
-\item Dominan los grandes SGBDR
-\item El {\em Open Source} tiene una importancia crucial (MySQL,
-  MongoDB, etc.)
-\item Varias bases de datos NoSQL entre las~10 primeras. Muchas en las~20
-  primeras
-\item La distancia entre los grandes SGBDR y el primer NoSQL (MongoDB) es
-  de~5$\times$
-\item Paradigmas más ``atrevidos'' como el de grafos están entre los~20
-  primeros (Neo4j)
-\end{itemize}
-  \end{alertblock}
-\end{frame}
+% \begin{frame}
+%   \frametitle{Adopción NoSQL. Análisis}
+% \begin{alertblock}{Análisis}
+% \begin{itemize}
+% \item Dominan los grandes SGBDR
+% \item El {\em Open Source} tiene una importancia crucial (MySQL,
+%   MongoDB, etc.)
+% \item Varias bases de datos NoSQL entre las~10 primeras. Muchas en las~20
+%   primeras
+% \item La distancia entre los grandes SGBDR y el primer NoSQL (MongoDB) es
+%   de~5$\times$
+% \item Paradigmas más ``atrevidos'' como el de grafos están entre los~20
+%   primeros (Neo4j)
+% \end{itemize}
+%   \end{alertblock}
+% \end{frame}
 
 
 
@@ -696,8 +662,8 @@ Cassandra desarrollada en Facebook en~2009\\
 \item {\bf Escalabilidad}
 \item Explotación de la {\bf localidad de los datos}:
   \begin{itemize}
-  \item Datos producidos se utilizan en siguientes iteraciones
-\item Datos recibidos directamente (clientes simultáneos)
+  \item Datos producidos en cada nodo se utilizan en siguientes iteraciones
+  \item Cada nodo puede hacer de servidor para recibir datos
 \end{itemize}
 \end{itemize}
 \end{block}
@@ -727,14 +693,14 @@ Cassandra desarrollada en Facebook en~2009\\
 \end{block}%
 }%
 \only<6>{
-\vspace*{-11em}
+\vspace*{-10em}
 \begin{block}{Modelo de datos (ii)}
 \begin{itemize}
 \item ¿Si se pudiera ver como un {\bf GRAN ARRAY}?
 \begin{itemize}
 \item Cada nodo almacenaría una parte del array
 \item Búsqueda aleatoria {\bf muy rápida} (árboles B)
-\item Uso de {\bf filtros de Bloom}
+%\item Uso de {\bf filtros de Bloom}
 \item Uso de {\bf objetos complejos} (p. ej. {\bf documentos JSON}),
   para mantener la {\bf localidad espacial de datos relacionados} (+
   después)
@@ -778,7 +744,7 @@ Cassandra desarrollada en Facebook en~2009\\
                                                un {\bf esquema implícito}\\
 \rowcolor{blue!20} {\bf Tipado estricto} (estático) && {\bfseries\itshape Duck-Typing}
                                     (dinámico) \\
-\rowcolor{blue!15}  Datos homogéneos && Datos {\bf heterogéneos}\\
+\rowcolor{blue!15}  Datos {\bf homogéneos} && Datos {\bf heterogéneos}\\
 \rowcolor{blue!20} Proceso analítico a través de {\bf consultas} && {\bfseries\itshape Use as read}\\
 \end{tabular}
 \end{small}
@@ -809,8 +775,13 @@ if (user && user.name && !user.first_name) {
 \framebreak
 
 \begin{itemize}
-\item En SQL puede ser un proceso muy costoso (procesa toda la tabla, {\em
-    locking\/}, puede que haya que parar las aplicaciones):
+\item En SQL:
+  \begin{itemize}
+  \item Puede ser un proceso muy costoso
+  \item Procesa toda la tabla
+  \item {\em Locking}
+  \item Puede obligar a parar las aplicaciones
+  \end{itemize}
 \end{itemize}
 \begin{lstlisting}[language=SQL]
 ALTER TABLE users ADD COLUMN first_name text;
@@ -854,22 +825,22 @@ UPDATE users SET first_name =
 \end{frame}
 
 
-\begin{frame}
-  \frametitle{Choose wisely}
-\begin{columns}
-\begin{column}{.5\textwidth}
-  \includegraphics[height=.7\textheight]{img/chose-wisely}
-\end{column}
-\begin{column}{.5\textwidth}
-\begin{alertblock}{SQL}
-\end{alertblock}
-\begin{alertblock}{NoSQL}
-\end{alertblock}
-\begin{alertblock}{Polyglot Persistence}
-\end{alertblock}
-\end{column}
-\end{columns}
-\end{frame}
+% \begin{frame}
+%   \frametitle{Choose wisely}
+% \begin{columns}
+% \begin{column}{.5\textwidth}
+%   \includegraphics[height=.7\textheight]{img/chose-wisely}
+% \end{column}
+% \begin{column}{.5\textwidth}
+% \begin{alertblock}{SQL}
+% \end{alertblock}
+% \begin{alertblock}{NoSQL}
+% \end{alertblock}
+% \begin{alertblock}{Polyglot Persistence}
+% \end{alertblock}
+% \end{column}
+% \end{columns}
+% \end{frame}
 
 
 \subsection{Modelado de datos en NoSQL}
@@ -910,7 +881,6 @@ Con respecto al modelo de datos:
 
 \begin{frame}
   \frametitle{Representación de relaciones}
-  \framesubtitle{Relaciones uno a muchos}
 
   Las relaciones uno a muchos (e.g. {\tt positions}) en el modelo
   relacional:
@@ -972,89 +942,89 @@ Con respecto al modelo de datos:
 \end{lstlisting}
 \end{frame}
 
-\begin{frame}
-  \frametitle{CV como un árbol (equivalente)}
-\centering\includegraphics[height=.85\textheight]{img/tree}
-\end{frame}
+% \begin{frame}
+%   \frametitle{CV como un árbol (equivalente)}
+% \centering\includegraphics[height=.85\textheight]{img/tree}
+% \end{frame}
 
-\begin{frame}[allowframebreaks]
-  \frametitle{Representación de Relaciones}
-\framesubtitle{Modelo de documentos}
-\begin{itemize}
-\item {\bf Modelo de documentos} \ra{} analogía del {\bf array/mapa
-    gigante}
-\item {\bf Conjunto de documentos} (objetos complejos)
-  \begin{itemize}
-\item Un {\bf identificador único}, campo {\em id\/}
-\item Búsqueda aleatoria eficiente por clave ({\bf referencia})
-\item Estructura jerárquica de sub-documentos contenidos \ra{}
-  {\bf agregación}
-\end{itemize}
-\end{itemize}
+% \begin{frame}[allowframebreaks]
+%   \frametitle{Representación de Relaciones}
+% \framesubtitle{Modelo de documentos}
+% \begin{itemize}
+% \item {\bf Modelo de documentos} \ra{} analogía del {\bf array/mapa
+%     gigante}
+% \item {\bf Conjunto de documentos} (objetos complejos)
+%   \begin{itemize}
+% \item Un {\bf identificador único}, campo {\em id\/}
+% \item Búsqueda aleatoria eficiente por clave ({\bf referencia})
+% \item Estructura jerárquica de sub-documentos contenidos \ra{}
+%   {\bf agregación}
+% \end{itemize}
+% \end{itemize}
 
 
-\begin{alertblock}{}
-  Más flexibilidad que el modelo relacional (elección entre \underline{\em
-    referencia} y \underline{\em agregación})
-\end{alertblock}
+% \begin{alertblock}{}
+%   Más flexibilidad que el modelo relacional (elección entre \underline{\em
+%     referencia} y \underline{\em agregación})
+% \end{alertblock}
 
-\end{frame}
+% \end{frame}
 
-\begin{frame}[allowframebreaks]
-  \frametitle{Representación de Relaciones}
-\framesubtitle{Uno a muchos (ii) -- NoSQL}
-\begin{itemize}
-\item Relaciones {\bf Uno a Muchos} ({\tt positions}):
-  \begin{itemize}
-  \item {\bf Opción 1}: Agregando la tabla {\tt positions}
-  \item {\bf Opción 2}: Convertir las empresas en entidades, y utilizar una
-    {\bfseries\itshape referencia}
-  \end{itemize}
-\item ¿Qué opción elegir?
-\end{itemize}
+% \begin{frame}[allowframebreaks]
+%   \frametitle{Representación de Relaciones}
+% \framesubtitle{Uno a muchos (ii) -- NoSQL}
+% \begin{itemize}
+% \item Relaciones {\bf Uno a Muchos} ({\tt positions}):
+%   \begin{itemize}
+%   \item {\bf Opción 1}: Agregando la tabla {\tt positions}
+%   \item {\bf Opción 2}: Convertir las empresas en entidades, y utilizar una
+%     {\bfseries\itshape referencia}
+%   \end{itemize}
+% \item ¿Qué opción elegir?
+% \end{itemize}
 
-\framebreak
+% \framebreak
 
-\begin{alertblock}{¡Modelo guiado por el acceso a datos!}
-\begin{small}
-  \begin{itemize}
-  \item Si los elementos ``muchos'' tienen una estructura sencilla
-    \ra{} {\bf Opción~1}
-\item Si los elementos ``muchos'' son usualmente {\bf recuperados en una
-    consulta} junto con el elemento ``uno'' \ra{} {\bf Opción~1}
-\item Si los elementos ``muchos'' son relativamente grandes, o bien son
-  recuperados siempre de forma separada \ra{} {\bf Opción~2}
-  \end{itemize}
-\end{small}
-\end{alertblock}
-\end{frame}
+% \begin{alertblock}{¡Modelo guiado por el acceso a datos!}
+% \begin{small}
+%   \begin{itemize}
+%   \item Si los elementos ``muchos'' tienen una estructura sencilla
+%     \ra{} {\bf Opción~1}
+% \item Si los elementos ``muchos'' son usualmente {\bf recuperados en una
+%     consulta} junto con el elemento ``uno'' \ra{} {\bf Opción~1}
+% \item Si los elementos ``muchos'' son relativamente grandes, o bien son
+%   recuperados siempre de forma separada \ra{} {\bf Opción~2}
+%   \end{itemize}
+% \end{small}
+% \end{alertblock}
+% \end{frame}
 
-\begin{frame}
-  \frametitle{Representación de Relaciones}
-  \framesubtitle{Muchos a uno y muchos a muchos}
-Relaciones muchos a uno y muchos a muchos:
-    \begin{itemize}
-    \item Personas que viven en una región
-\item Preguntas que refieren a Tags
-    \end{itemize}
-El modelo de documentos no aporta ventajas
-  \begin{itemize}
-  \item La {\em agregación} daría lugar a mucha {\bf duplicación} (y a
-  problemas de sincronización)
+% \begin{frame}
+%   \frametitle{Representación de Relaciones}
+%   \framesubtitle{Muchos a uno y muchos a muchos}
+% Relaciones muchos a uno y muchos a muchos:
+%     \begin{itemize}
+%     \item Personas que viven en una región
+% \item Preguntas que refieren a Tags
+%     \end{itemize}
+% El modelo de documentos no aporta ventajas
+%   \begin{itemize}
+%   \item La {\em agregación} daría lugar a mucha {\bf duplicación} (y a
+%   problemas de sincronización)
 
-\item {\color{red} $\Rightarrow$} {\bf Referencias} (sobre el ID), similar
-  a una FK en el modelo relacional
-\begin{itemize}
-  \item {\color{red} $\Rightarrow$} al no haber {\bf JOINs} la aplicación
-    tiene que hacer más de una petición a la BD
-  \end{itemize}
-\end{itemize}
-\end{frame}
+% \item {\color{red} $\Rightarrow$} {\bf Referencias} (sobre el ID), similar
+%   a una FK en el modelo relacional
+% \begin{itemize}
+%   \item {\color{red} $\Rightarrow$} al no haber {\bf JOINs} la aplicación
+%     tiene que hacer más de una petición a la BD
+%   \end{itemize}
+% \end{itemize}
+% \end{frame}
 
-\begin{frame}
-  \frametitle{Muchos a muchos -- referencia}
-\includegraphics[width=\textwidth]{img/many-to-many}
-\end{frame}
+% \begin{frame}
+%   \frametitle{Muchos a muchos -- referencia}
+% \includegraphics[width=\textwidth]{img/many-to-many}
+% \end{frame}
 
 % \begin{frame}
 %   \frametitle{Reconsiderando el modelo de documentos}
@@ -1202,107 +1172,98 @@ El modelo de documentos no aporta ventajas
 \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]
-  \vspace{-0.65cm}
-  \begin{columns}
-    \column[t]{.5\textwidth}
-    \begin{lstlisting}[language=json,basicstyle=\tiny\tt]
-{ "type": "Movie",
-  "title": "Citizen Kane",
-  "year": 1941,
-  "director_id": "123451",
-  "genre": "Drama",
-  "_id": "1",
-  "rating":
-  { "score": 8.4,
-    "voters": 310768
-  },
-  "prizes": [
-    { "year": 1941,
-      "event": "Oscar",
-      "names": ["Best original screenplay"]
-    },
-    { "year": 1941,
-      "event": "NY Film Critics",
-      "names": ["Best screenplay"]
-    }
-  ],
-  "criticisms": [
-    { "journalist": "R. Brody",
-      "media": "The New Yorker",
-      "color": "green"
-    }
-  ]
-},
-{ "_id": "123451",
-  "name": "Orson Welles",
-  "type": "director",
-  "directed_movies": ["1"],
-  "acted_movies": ["1"]
-},
-    \end{lstlisting}
-    \column[t]{.5\textwidth}
-    \begin{lstlisting}[language=json,basicstyle=\tiny\tt]
-{ "_id": "2",
-  "type": "Movie",
-  "title": "Truth",
-  "year": 2015,
-  "director_id": "345679",
-  "genre": "Drama",
-  "rating": {
-    "score": 6.8,
-    "voters": 12682
-  },
-  "criticisms":[
-    {
-      "journalist": "Jordi Costa",
-      "media": {
-        "name": "El Pais",
-        "url": "http://elpais.com/"
-      },
-      "color": "red"
-    },
-    {
-      "journalist": "Lou Lumenick",
-      "media": "New York Post",
-      "color": "green"
-    }
-  ]
-},
-{
-  "_id": "345679",
-  "name": "James Vanderbilt",
-  "type": "director",
-  "directed_movies": ["2"]
-}
-    \end{lstlisting}
-  \end{columns}
-\end{frame}
+% \begin{frame}[fragile]
+%   \vspace{-0.65cm}
+%   \begin{columns}
+%     \column[t]{.5\textwidth}
+%     \begin{lstlisting}[language=json,basicstyle=\tiny\tt]
+% { "type": "Movie",
+%   "title": "Citizen Kane",
+%   "year": 1941,
+%   "director_id": "123451",
+%   "genre": "Drama",
+%   "_id": "1",
+%   "rating":
+%   { "score": 8.4,
+%     "voters": 310768
+%   },
+%   "prizes": [
+%     { "year": 1941,
+%       "event": "Oscar",
+%       "names": ["Best original screenplay"]
+%     },
+%     { "year": 1941,
+%       "event": "NY Film Critics",
+%       "names": ["Best screenplay"]
+%     }
+%   ],
+%   "criticisms": [
+%     { "journalist": "R. Brody",
+%       "media": "The New Yorker",
+%       "color": "green"
+%     }
+%   ]
+% },
+% { "_id": "123451",
+%   "name": "Orson Welles",
+%   "type": "director",
+%   "directed_movies": ["1"],
+%   "acted_movies": ["1"]
+% },
+%     \end{lstlisting}
+%     \column[t]{.5\textwidth}
+%     \begin{lstlisting}[language=json,basicstyle=\tiny\tt]
+% { "_id": "2",
+%   "type": "Movie",
+%   "title": "Truth",
+%   "year": 2015,
+%   "director_id": "345679",
+%   "genre": "Drama",
+%   "rating": {
+%     "score": 6.8,
+%     "voters": 12682
+%   },
+%   "criticisms":[
+%     {
+%       "journalist": "Jordi Costa",
+%       "media": {
+%         "name": "El Pais",
+%         "url": "http://elpais.com/"
+%       },
+%       "color": "red"
+%     },
+%     {
+%       "journalist": "Lou Lumenick",
+%       "media": "New York Post",
+%       "color": "green"
+%     }
+%   ]
+% },
+% {
+%   "_id": "345679",
+%   "name": "James Vanderbilt",
+%   "type": "director",
+%   "directed_movies": ["2"]
+% }
+%     \end{lstlisting}
+%   \end{columns}
+% \end{frame}
 
 \begin{frame}[allowframebreaks,fragile]
 \frametitle{Map-Reduce}
 
-\begin{block}{}
-  \centering Las BD Documentales (y la mayoría de las NoSQL) usan {\bf
-    Map-Reduce} como principal mecanismo de búsqueda y transformación
-\end{block}
-
-\begin{itemize}
-\item Origen en {\bf lenguajes funcionales}:
-\begin{itemize}
-\item {\tt map()}: Ejecuta una misma función sobre todos los elementos de
-  un conjunto
-\begin{lstlisting}[language=haskell]
-map :: (a -> b) -> [a] -> [b]
-\end{lstlisting}
-\item {\tt reduce()}: Procesa un conjunto de valores para producir un
-  valor de salida
-\begin{lstlisting}[language=haskell]
-foldl :: (a -> b -> a) -> a -> [b] -> a
-\end{lstlisting}
-\end{itemize}
+ {\bf Map-Reduce} es el principal mecanismo de búsqueda y transformación en
+ BBDD NoSQL. Tiene su origen en {\bf lenguajes funcionales}:
+  \begin{block}{{\tt map()}}
+    Ejecuta una misma función sobre todos los elementos de un conjunto
+  \end{block}
+  \begin{block}{{\tt reduce()}}
+    Procesa un conjunto de valores para producir un valor de salida
+  \end{block}
 
 \framebreak
+
+\begin{itemize}
 
 \item Map-Reduce combina ambas operaciones:
 \begin{itemize}
@@ -1317,21 +1278,19 @@ foldl :: (a -> b -> a) -> a -> [b] -> a
 \end{itemize}
 \end{itemize}
 
+% \framebreak
+
+% \centering\includegraphics[width=.9\textwidth]{img/mapreduce1}
+
 \framebreak
 
-\centering\includegraphics[width=.9\textwidth]{img/mapreduce1}
-
-\framebreak
-
-(de \url{http://www.milanor.net/blog/an-example-of-mapreduce-with-rmr2/})
 \centering\includegraphics[width=\textwidth]{img/MapReduceWordcount}
+(de \url{http://www.milanor.net/blog/an-example-of-mapreduce-with-rmr2/})
 \end{frame}
 
 \begin{frame}
-\frametitle{Map-Reduce}
+\frametitle{Map-Reduce en entornos Big Data}
 \begin{itemize}
-\item Map-Reduce en entornos Big-Data/NoSQL
-  \begin{itemize}
   \item Entrada \ra{} siempre pares $<key,value>$
 
   \item {\tt map()} produce otro conjunto de valores
@@ -1348,19 +1307,18 @@ foldl :: (a -> b -> a) -> a -> [b] -> a
 \item Hay procesamientos difíciles de expresar en Map-Reduce $\Rightarrow$
   varias operaciones M/R {\bf en cadena}
   \end{itemize}
-\end{itemize}
+
 \end{frame}
 
 
 \begin{frame}[fragile,allowframebreaks]
-  \frametitle{Map-Reduce y Consultas}
-\begin{itemize}
-\item Map-Reduce puede usarse no sólo para computación distribuida, sino
-  también como una {\bf generalización de consultas}
-\item Ejemplo: Imagínese un biólogo marino que hace anotaciones de cada
+  \frametitle{Map-Reduce como generalización de consultas}
+
+  {\bf Ejemplo}: Imagínese un biólogo marino que hace anotaciones de cada
   animal que ve en el océano, y quiere saber cuántos tiburones ha visto por
   mes:
-\begin{lstlisting}[language=SQL]
+
+  \begin{lstlisting}[language=SQL]
 SELECT MONTH(observation_timestamp) AS observation_month,
        sum(num_animals) AS total_animals
 FROM observations
@@ -1370,7 +1328,7 @@ GROUP BY observation_month;
 
   \framebreak
 
-\item MongoDB con el API de MapReduce:
+MongoDB con el API de MapReduce:
 \begin{lstlisting}[language=Javascript,basicstyle=\footnotesize\tt]
 db.observations.mapReduce(
   function map() {
@@ -1384,26 +1342,25 @@ db.observations.mapReduce(
   {
     query: { family: "Sharks" },
     out: "monthlySharkReport"
-  }
-);
+  });
 \end{lstlisting}
 
-\item  MongoDB ofrece además un API alternativo para funciones de agregación:
+% MongoDB ofrece además un API alternativo para funciones de agregación:
 
-\begin{lstlisting}[language=Javascript,basicstyle=\footnotesize\tt]
-db.observations.aggregate([
-  { $match: { family: "Sharks" } },
-  { $group: {
-    _id: {
-       year: { $year: "$observationTimestamp" },
-       month: { $month: "$observationTimestamp" }
-    },
-    totalAnimals: { $sum: "$numAnimals" }
-  }
-  }
-]);
-\end{lstlisting}
-\end{itemize}
+% \begin{lstlisting}[language=Javascript,basicstyle=\footnotesize\tt]
+% db.observations.aggregate([
+%   { $match: { family: "Sharks" } },
+%   { $group: {
+%     _id: {
+%        year: { $year: "$observationTimestamp" },
+%        month: { $month: "$observationTimestamp" }
+%     },
+%     totalAnimals: { $sum: "$numAnimals" }
+%   }
+%   }
+% ]);
+% \end{lstlisting}
+
 \end{frame}
 
 \begin{frame}[plain]
@@ -1411,43 +1368,11 @@ db.observations.aggregate([
 \end{frame}
 
 \begin{frame}[fragile,allowframebreaks]
-  \frametitle{Uso de MongoDB}
+  \frametitle{Conceptos de MongoDB}
   \begin{itemize}
-  \item MongoDB permite el uso desde su {\em shell} o bien desde clientes
-    remotos
-\begin{verbatim}
-$ mongo
-MongoDB shell version v3.4.6
-connecting to: mongodb://127.0.0.1:27017
-MongoDB server version: 3.4.6
->
-\end{verbatim}
-    \item El shell es básicamente JavaScript, con modificaciones para
-      acceder a la base de datos
-    \item La variable {\tt db} siempre está disponibles, y guarda la base
-      de datos especificada con {\tt use~base-de-datos}
-    \item Después, {\tt db.colección} crea la colección ``{\tt colección}''
-    \item Dentro de cada colección hay un conjunto de documentos,
-      identificados por su campo ``{\tt \_id}''
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile,allowframebreaks]
-  \frametitle{Uso desde {\tt Pymongo}}
-
-\begin{itemize}
-\item Para el uso remoto utilizaremos {\tt pymongo}, una biblioteca para
-  Python:
-\begin{verbatim}
-sudo pip2 install pymongo
-\end{verbatim}
-\item Los nombres de los métodos de las colecciones son muy similares a las
-  equivalentes de Javascript
-\item Docs:
-  \url{http://api.mongodb.com/python/current/api/pymongo/collection.html}
-\end{itemize}
-
-\end{frame}
+  \item Bases de datos
+  \item Colecciones
+  \item Documentos
 
 \begin{frame}
   \frametitle{Métodos de búsqueda}
