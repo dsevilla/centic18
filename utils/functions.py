@@ -14,14 +14,10 @@ def say(string):
     return say_(string, font)
 
 yodaimg = PImage.open('images/yoda.jpg')
-chewimg = PImage.open('images/diego.png')
 scale=1.5
 
 def yoda(string):
     return herosay(string, yodaimg)
-
-def chew(string):
-    return herosay(string, chewimg)
 
 def herosay(string, img):    
     fontsize = font_small.getsize(string)

@@ -8,7 +8,6 @@ DEPS_DIR = .deps
 LATEXMK = latexmk -recorder -use-make -deps
 
 all: $(TARGETS)
-	cp slides.pdf ..
 
 slides-dir: $(TARGETS)
 	-rm -rf slides-dir && mkdir slides-dir
