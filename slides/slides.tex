@@ -458,7 +458,7 @@ Universidad de Murcia\\
 
 \section{Introducción a los sistemas NoSQL}
 
-%\input nosql
+\input nosql
 
 \section{Tipos de Sistemas NoSQL}
 
@@ -783,9 +783,41 @@ db.productos.find({"tags" :
   \end{itemize}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile,allowframebreaks]
   \frametitle{Ups, ¡valoraciones de usuarios!}
+\begin{itemize}
+\item En un momento dado podemos querer añadir las valoraciones de usuarios
+\item En un entorno relacional hubiera obligado a {\bf crear tablas}, {\bf
+    cambiar cosultas}, {\bf realizar JOINs}, etc.
+\item En el caso de MongoDB:
+  \begin{itemize}
+  \item El ID del objeto se ha obtenido al mostrarlo
+  \item El {\tt user} es del {\em login\/} del usuario
+  \end{itemize}
 
+\begin{lstlisting}[language=python]
+db.productos.update_one(
+ {'_id': ObjectId('5b1d09b3b3d977001bc53e03')},
+ {'$push' : {'valoraciones' :
+   {'user': 'Pepe', 'estrellas' : 3.5, 'comment': 'bah'}}})
+\end{lstlisting}
+
+\framebreak
+
+\begin{lstlisting}[language=python]
+db.productos.update_one(
+ {'_id': ObjectId('5b1d09b3b3d977001bc53e03')},
+ {'$push' : {'valoraciones' :
+   {'user': 'Diego', 'estrellas' : 5, 'comment': 'Like!'}}})
+\end{lstlisting}
+
+\item No hace falta definir de antemano el campo ``{\tt valoraciones}''
+\item Las modificaciones sobre el objeto producto son {\bf atómicas}
+  \begin{itemize}
+  \item No hay necesidad de {\bf transacciones ACID}
+  \end{itemize}
+\item Todos los campos se recuperan {\bf en la consulta}
+\end{itemize}
 \end{frame}
 
 \begin{frame}
@@ -824,15 +856,14 @@ db.productos.find({"tags" :
 Map-Reduce combina ambas operaciones:
 \begin{itemize}
 \item Una misma operación {\tt map()} a cada dato residente en un nodo se
-  realiza de forma paralela en {\bf todos} los nodos simultáneamente
+  realiza de forma {\bf paralela en todos los nodos}
 \item Con los resultados parciales de cada nodo, una función {\tt reduce()}
-  genera un resultado (o un conjunto de resultados) final
+  genera un resultado (o conjunto de resultados) final
 \item Hay un proceso intermedio de {\em shuffle} para agrupar valores
   relacionados antes del {\tt reduce()}
 \item Resultados parciales en el mismo nodo (localidad) $\Rightarrow$
   procesamientos {\bf en cadena}
 \end{itemize}
-
 
 \framebreak
 
@@ -933,26 +964,42 @@ db.observations.mapReduce(
     devuelven en vivo
   \item Como el código se ejecuta dentro del motor de la base de datos, hay
     que enviarle el código en Javascript
-  \item Por ejemplo, cálculo de histograma de tamaño del texto de las
-    diapositivas:
+  \item Por ejemplo, cálculo de la valoración media de productos por
+    fabricante:
+
+  \end{itemize}
+
 \framebreak
 \begin{lstlisting}[language=Python]
 from bson.code import Code
 map = Code(
-    '''function () {
-           if ('text' in this)
-               emit(this.text.length, 1)
-           else
-               emit(0,1)
-       }''')
+'''function () {
+     obj = this
+     if ('valoraciones' in this)
+         this.valoraciones.forEach(function (v) {
+             emit(obj.fabricante, v.estrellas);
+         })
+   }''')
 reduce = Code(
-    '''function (key, values) {
-            return Array.sum(values);
-        }''')
-results = jisbd17.map_reduce(map, reduce, "myresults")
+'''function (key, values) {
+        return Array.sum(values) / values.length;
+   }''')
+results = db.productos.map_reduce(map, reduce, "valoración_media")
 \end{lstlisting}
 
-  \end{itemize}
+\framebreak
+
+\begin{itemize}
+\item La colección {\tt valoracion\_media} tendrá valores:
+\end{itemize}
+
+\begin{lstlisting}[language=Python]
+[{'_id': 'Samsung', 'value': 4.25},
+ {'_id': 'LG', 'value': 4},
+ ...
+]
+\end{lstlisting}
+
 \end{frame}
 
 
