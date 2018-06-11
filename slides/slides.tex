@@ -1349,87 +1349,104 @@ except:
   un número finito de ellas
 \item En el caso de la familia {\tt val}, aplicamos compresión, ya que la
   familia puede albergar gran cantidad de texto
-\item También aplicamos al parámetro {\tt bloom\_filter\_type} el valor
-  {\tt ROW} \framebreak
-\item {\tt bloom\_filter\_type} puede estar deshabilitado ({\tt NONE}), o
-  tomar dos valores:
-  \begin{description}[ROW]
-  \item[{\tt ROW}] Permite establecer rápidamente si una fila no existe
-    \begin{itemize}
-    \item Como hemos visto, HBase mantiene una estructura de árbol B+ para
-      encontrar las filas buscadas
-    \item Sin embargo, el árbol guarda rangos de claves, pero no si una
-      clave específica existe o no
-    \item Poniendo el valor {\tt ROW}, se crea un filtro Bloom que permite
-      descartar cuando una clave no está
-    \end{itemize}
-\framebreak
-  \item[{\tt ROWCOL}] Realiza también un filtro Bloom para describir si
-    una columna está en una fila concreta o no. Las columnas pueden ser
-    muchas. Además, se utiliza un fichero para cada familia de columnas.
-    Por lo tanto, si no se tiene este índice, se tienen que hacer muchas
-    comprobaciones para saber si una de las columnas a mostrar está en una
-    fila concreta o no. El filtro Bloom con valor {\tt ROWCOL} crea un
-    filtro Bloom para las columnas de cada fila
-  \end{description}
+\item También se pueden añadir opciones para configurar el filtro Bloom,
+  con la opción {\tt bloom\_filter\_type}, aunque no las veremos
+
+%  \framebreak
+
+% \item {\tt bloom\_filter\_type} puede estar deshabilitado ({\tt NONE}), o
+%   tomar dos valores:
+%   \begin{description}[ROW]
+%   \item[{\tt ROW}] Permite establecer rápidamente si una fila no existe
+%     \begin{itemize}
+%     \item Como hemos visto, HBase mantiene una estructura de árbol B+ para
+%       encontrar las filas buscadas
+%     \item Sin embargo, el árbol guarda rangos de claves, pero no si una
+%       clave específica existe o no
+%     \item Poniendo el valor {\tt ROW}, se crea un filtro Bloom que permite
+%       descartar cuando una clave no está
+%     \end{itemize}
+% \framebreak
+%   \item[{\tt ROWCOL}] Realiza también un filtro Bloom para describir si
+%     una columna está en una fila concreta o no. Las columnas pueden ser
+%     muchas. Además, se utiliza un fichero para cada familia de columnas.
+%     Por lo tanto, si no se tiene este índice, se tienen que hacer muchas
+%     comprobaciones para saber si una de las columnas a mostrar está en una
+%     fila concreta o no. El filtro Bloom con valor {\tt ROWCOL} crea un
+%     filtro Bloom para las columnas de cada fila
+%   \end{description}
 \end{itemize}
 \end{frame}
 
 
 \begin{frame}[fragile,allowframebreaks]
-  \frametitle{Creación de la base de datos}
-Podemos copiar la tabla {\tt jisbd17} de Mongo (no se copia {\tt xref}
-porque se hará una optimización posterior):
+  \frametitle{Añadimos los datos}
+Añadiremos ahora los productos:
 
 \begin{lstlisting}[language=python]
-h_jisbd17 = hbasecon.table('jisbd17')
-with h_jisbd17.batch(batch_size=100) as b:
-    for doc in jisbd17.find():
-        b.put(doc['_id'], {
-            'slide:title' : doc.get('title',''),
-            'slide:notes' : doc.get('notes',''),
-            'text:' : doc.get('text', ''),
-            'image:' : str(doc.get('image',''))
-        })
+productos.put(b'tv40-sxx40',
+ {
+   'd:nombre': 'Samsung XX40',
+   'd:descripción' : 'Televisión Samsung, 40"...',
+   'd:precio' : '600',
+   'd:fabricante': 'Samsung',
+   'd:stock': '20',
+   'd:tags' : 'tv,40",lcd,hdmi,smart-tv'
+ })
 \end{lstlisting}
 
 \framebreak
 
-Con {\tt xref} podemos usar una optimización en HBase:
+\begin{lstlisting}[language=python]
+productos.put(b'tv42-LGT42',{
+  'd:nombre': 'LG T42',
+  'd:descripción' : 'Televisión LG 42"',
+  'd:precio' : '655',
+  'd:fabricante': "LG",
+  'd:stock': '10',
+  'd:tags' : 'tv,42",led,hdmi,smart-tv'
+  })
+\end{lstlisting}
+
+\framebreak
+Obtención de filas:
+
+\begin{lstlisting}[language=python]
+productos.row(b'tv40-sxx40')
+# ==>
+{b'd:descripci\xc3\xb3n': b'Televisi\xc3\xb3n Samsung, 40"...',
+ b'd:fabricante': b'Samsung',
+ b'd:nombre': b'Samsung XX40',
+ b'd:precio': b'600',
+ b'd:stock': b'20',
+ b'd:tags': b'tv,40",lcd,hdmi,smart-tv'}
+\end{lstlisting}
+
+\framebreak
 
 \begin{itemize}
 \item Las filas pueden crecer tanto como se quiera también en columnas
-\item El filtro {\em Bloom} {\tt ROWCOL} hace muy eficiente buscar por una
-  columna en particular
 \end{itemize}
 
-{\bf IDEA}: Usar los elementos del array como nombres de las columnas.
-Convierte automáticamente a esa columna en un {\bf índice inverso}:
-
 \framebreak
-
-\begin{lstlisting}[language=python]
-with h_jisbd17.batch(batch_size=100) as b:
-    for doc in jisbd17.find():
-        if 'xref' in doc:
-            for ref in doc['xref']:
-                b.put(doc['_id'], {
-                    'xref:'+ref : ''
-                })
-\end{lstlisting}
 
 Y la búsqueda de índice inverso: Las fila que {\bf contienen la
   columna que buscamos} (filas que apuntan a la buscada):
 
 \begin{lstlisting}[language=python]
-list(h_jisbd17.scan(columns=['xref:jisbd17-002']))
-==> [('jisbd17-000', {'xref:jisbd17-002': ''})]
+productos.scan(columns=['d:tag_tv'])
+# ==> [('jisbd17-000', {'xref:jisbd17-002': ''})]
 \end{lstlisting}
 
 Finalmente, en HBase, un {\tt scan} es una {\em pérdida de tiempo} \ra{} Se
 debería precomputar la referencia inversa e incluirla en cada {\em slide}.
 La búsqueda así es O(1)
 
+\end{frame}
+
+\begin{frame}
+  \frametitle{{\tt scan()} {\em vs}. {\tt get()}}
+\centering\includegraphics[height=.8\paperheight]{img/drake}
 \end{frame}
 
 \begin{frame}[allowframebreaks]
