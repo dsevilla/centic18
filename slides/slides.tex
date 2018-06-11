@@ -1291,14 +1291,15 @@ hbase(main):001:0> status
 \item Creación de tablas, especificando las {\em column families}
   iniciales:
 \begin{lstlisting}[language=ruby]
-hbase> create 'productos', 'd', 'val'
+hbase> create 'productos', 'd', 'val', 'tags'
 0 row(s) in 1.3810 seconds
-=> Hbase::Table - slides
+=> Hbase::Table - productos
 \end{lstlisting}
 
-\item Se crea la tabla {\tt productos} con dos familias de columnas,
-  {\tt d}, que guardará los datos del producto, y {\tt val}, que
-  guardará las valoraciones de los usuarios
+\item Se crea la tabla {\tt productos} con tres familias de columnas,
+  {\tt d}, que guardará los datos del producto, {\tt val}, que
+  guardará las valoraciones de los usuarios, y {\tt tags}, que guardará los
+  tags de los productos
 
 \item Se puede insertar datos y consultar desde el {\em shell\/}, pero lo
   veremos desde Python
@@ -1334,7 +1335,8 @@ try:
   'productos',
     {
       'd': dict(max_versions=1),
-      'val' : dict(max_versions=1,compression='GZ')
+      'val' : dict(max_versions=1,compression='GZ'),
+      'tags' : dict(max_versions=1)
     })
 except:
     print("Error creando database: productos")
@@ -1349,6 +1351,7 @@ except:
   un número finito de ellas
 \item En el caso de la familia {\tt val}, aplicamos compresión, ya que la
   familia puede albergar gran cantidad de texto
+\item Se crea una familia
 \item También se pueden añadir opciones para configurar el filtro Bloom,
   con la opción {\tt bloom\_filter\_type}, aunque no las veremos
 
@@ -1425,23 +1428,92 @@ productos.row(b'tv40-sxx40')
 \framebreak
 
 \begin{itemize}
-\item Las filas pueden crecer tanto como se quiera también en columnas
+\item Varias consideraciones del código anterior:
+  \begin{itemize}
+  \item Al ser una tabla ordenada por clave, la elección de la clave es
+    {\bf crucial}
+  \item En nuestro caso incluye la categoría inicial del producto
+    \begin{itemize}
+    \item Obtener filas consecutivas es {\bf muy rápido}
+    \item Por ejemplo, todas las televisiones se pueden obtener buscando
+      '{\tt tv}'
+    \end{itemize}
+  \end{itemize}
+\item Además de poder almacenar millones de filas, las filas pueden {\bf
+    crecer tanto como se quiera también en columnas}
+\item Esta estrategia se puede usar para almacenar relaciones {\bf
+    maestro/detalle} de manera eficiente, ya que se obtiene en una sola
+  consulta
+\item Todos los datos relacionados se obtienen {\bf con un solo get}
+\item La usaremos para los {\em tags}
 \end{itemize}
 
 \framebreak
 
-Y la búsqueda de índice inverso: Las fila que {\bf contienen la
-  columna que buscamos} (filas que apuntan a la buscada):
-
 \begin{lstlisting}[language=python]
-productos.scan(columns=['d:tag_tv'])
-# ==> [('jisbd17-000', {'xref:jisbd17-002': ''})]
+productos.put(b'tv40-sxx40', {
+ 'tags:tv' : '',
+ 'tags:40"' : '',
+ 'tags:lcd' : '',
+ 'tags:hdmi' : '',
+ 'tags:smart-tv' : ''})
+productos.put(b'tv42-LGT42', {
+ 'tags:tv' : '',
+ 'tags:42"' : '',
+ 'tags:led' : '',
+ 'tags:hdmi' : '',
+ 'tags:smart-tv' : ''})
 \end{lstlisting}
 
-Finalmente, en HBase, un {\tt scan} es una {\em pérdida de tiempo} \ra{} Se
-debería precomputar la referencia inversa e incluirla en cada {\em slide}.
-La búsqueda así es O(1)
+\begin{itemize}
+\item Las columnas no tienen valor
+\item Sólo se usan como marcador de búsqueda rápida
+\end{itemize}
 
+\framebreak
+
+La búsqueda se realiza de forma muy rápida:
+
+\begin{lstlisting}[language=python]
+productos.scan('tv40',columns=['tags:hdmi'])
+# ==>
+# [(b'tv40-sxx40', {b'tags:hdmi': b''}),
+#  (b'tv42-LGT42', {b'tags:hdmi': b''})]
+\end{lstlisting}
+
+\framebreak
+
+\begin{itemize}
+\item De forma similar, las valoraciones se pueden modelar en HBase con
+  esta estrategia usando la familia de columnas {\tt val}
+\item Todas las opiniones se obtendrán con un {\tt get} ({\tt row})
+\item Las columnas que irán dentro de la familia las podemos ver en esta
+  tabla:
+\end{itemize}
+
+\framebreak
+%   {'user': 'Pepe', 'estrellas' : 3.5, 'comment': 'bah'}}})
+%   {'user': 'Diego', 'estrellas' : 5, 'comment': 'Like!'}}})
+
+\begin{center}
+  \begin{tabular}{ll}
+    \toprule
+    Columna  & Valor \\
+    \midrule
+    {\tt val:user\_Diego} & {\tt Diego}\\
+    {\tt val:estrellas\_Diego} & {\tt 5}\\
+    {\tt val:comment\_Diego} & {\tt Like!}\\
+    {\tt val:user\_Pepe} & {\tt Pepe}\\
+    {\tt val:estrellas\_Pepe} & {\tt 3.5}\\
+    {\tt val:comment\_Pepe} & {\tt bah}\\
+    \bottomrule
+  \end{tabular}
+\end{center}
+
+\begin{alertblock}{}
+  En cualquier caso, se debe huir de usar {\tt scan} \ra{} HBase está
+  construido para accesos O(1)
+\end{alertblock}
 \end{frame}
 
 \begin{frame}
@@ -1512,21 +1584,20 @@ scan 'tabla' , { FILTER => "Filtro" }
 table.scan(filter="Filtro...")
 \end{lstlisting}
 
-\framebreak
-
-\item Ordenación de las consultas en cuanto a su velocidad de ejecución:
-  \begin{enumerate}
-  \item Consultas de orden constante, como {\tt get} con clave o un
-    conjunto de columnas
-  \item Consultas rápidas porque hacen uso de los filtros Bloom: Prefijos
-    de claves, familias de columnas, prefijos de familias de columnas,
-    \ldots
-  \item Consultas más lentas, que requieren en algunos casos el
-    recorrido de toda la tabla (a evitar): Búsqueda por un valor en
-    concreto, búsqueda de expresiones regulares, etc.\\
-    (Todavía se benefician del escaneo en paralelo de todas las
-    regiones en RegionServers)
-  \end{enumerate}
+%\framebreak
+% \item Ordenación de las consultas en cuanto a su velocidad de ejecución:
+%   \begin{enumerate}
+%   \item Consultas de orden constante, como {\tt get} con clave o un
+%     conjunto de columnas
+%   \item Consultas rápidas porque hacen uso de los filtros Bloom: Prefijos
+%     de claves, familias de columnas, prefijos de familias de columnas,
+%     \ldots
+%   \item Consultas más lentas, que requieren en algunos casos el
+%     recorrido de toda la tabla (a evitar): Búsqueda por un valor en
+%     concreto, búsqueda de expresiones regulares, etc.\\
+%     (Todavía se benefician del escaneo en paralelo de todas las
+%     regiones en RegionServers)
+%   \end{enumerate}
 \end{itemize}
 \end{frame}
 
@@ -1597,17 +1668,21 @@ comparador:valor
 \lstset{basicstyle=\tiny\tt}
 
 \begin{lstlisting}
-hbase> scan 'jisbd17', {FILTER => "KeyOnlyFilter()"}
+hbase> scan 'productos', {FILTER => "KeyOnlyFilter()"}
+ROW                   COLUMN+CELL
+ tv40-sxx40           column=d:descripci\xC3\xB3n, timestamp=1528713898063, valu
+                      e=
+ tv40-sxx40           column=d:fabricante, timestamp=1528713898063, value=
+ tv40-sxx40           column=d:nombre, timestamp=1528713898063, value=
+ tv40-sxx40           column=d:precio, timestamp=1528713898063, value=
+ tv40-sxx40           column=d:stock, timestamp=1528713898063, value=
+ tv40-sxx40           column=d:tags, timestamp=1528713898063, value=
+ tv40-sxx40           column=tags:40", timestamp=1528714029653, value=
+ tv40-sxx40           column=tags:hdmi, timestamp=1528714029653, value=
+ tv40-sxx40           column=tags:lcd, timestamp=1528714029653, value=
+ tv40-sxx40           column=tags:smart-tv, timestamp=1528714029653, value=
+ tv40-sxx40           column=tags:tv, timestamp=1528714029653, value=
 ...
- jisbd17-154             column=image:, timestamp=1500328162013, value=
- jisbd17-154             column=slide:notes, timestamp=1500328162013, value=
- jisbd17-154             column=slide:title, timestamp=1500328162013, value=
- jisbd17-154             column=text:, timestamp=1500328162013, value=
- jisbd17-155             column=image:, timestamp=1500328162013, value=
- jisbd17-155             column=slide:notes, timestamp=1500328162013, value=
- jisbd17-155             column=slide:title, timestamp=1500328162013, value=
- jisbd17-155             column=text:, timestamp=1500328162013, value=
-319 row(s) in 0.5430 seconds
 \end{lstlisting}
 
 \item {\tt FirstKeyOnlyFilter} -- Retorna sólo la primera clave de cada
@@ -1618,25 +1693,21 @@ hbase> scan 'jisbd17', {FILTER => "KeyOnlyFilter()"}
   \item {\tt PrefixFilter} -- Prefijo de fila dado:
 
     \begin{lstlisting}
-hbase> scan 'jisbd17', {FILTER => "PrefixFilter('jisbd17-0')"}
+hbase> scan 'productos', {FILTER => "PrefixFilter('tv')"}
+ tv42-LGT42           column=d:descripci\xC3\xB3n, timestamp=1528713899887, valu
+                      e=Televisi\xC3\xB3n LG 42"
+ tv42-LGT42           column=d:fabricante, timestamp=1528713899887, value=LG
 ...
-jisbd17-099          column=slide:notes, timestamp=1500328162137, value=
-jisbd17-099          column=slide:title, timestamp=1500328162137, value={\x5Ctt
-                       happybase
-jisbd17-099          column=text:, timestamp=1500328162137, value=  \x5Cbegin{i
-                      temize}\x0A\x5Citem Hay varios paquetes para acceder a HBa
-100 row(s) in 8.7800 seconds
+2 row(s) in 0.0490 seconds
 \end{lstlisting}
 
   \item {\tt ColumnPrefixFilter} -- Prefijo de columna dado:
 
 \begin{lstlisting}
-hbase> scan 'jisbd17', {FILTER => "ColumnPrefixFilter('t')"}
-...
- jisbd17-159          column=slide:title, timestamp=1500328162182, value=
- jisbd17-160          column=slide:title, timestamp=1500328162182, value=
- jisbd17-161          column=slide:title, timestamp=1500328162182, value=
- jisbd17-162          column=slide:title, timestamp=1500328162182, value=
+hbase> scan 'productos', {FILTER => "ColumnPrefixFilter('42')"}
+ROW                   COLUMN+CELL
+ tv42-LGT42           column=tags:42", timestamp=1528714029661, value=
+1 row(s) in 0.0150 seconds
 \end{lstlisting}
 
     \framebreak
@@ -1655,14 +1726,14 @@ hbase> scan 'jisbd17', {FILTER => "ColumnPrefixFilter('t')"}
   Si la fila encaja con la comparación, la fila entera si muestra:
 
 \begin{lstlisting}
-hbase> scan 'jisbd17', {FILTER => "RowFilter(<,'binary:jisbd17-1')"}
+hbase> scan 'productos', {FILTER => "RowFilter(<,'binary:tv42')"}
+ROW                   COLUMN+CELL
+ tv40-sxx40           column=d:descripci\xC3\xB3n, timestamp=1528713898063, valu
+                      e=Televisi\xC3\xB3n Samsung, 40"...
+ tv40-sxx40           column=d:fabricante, timestamp=1528713898063, value=Samsun
+                      g
 ...
-jisbd17-099          column=slide:notes, timestamp=1500328162137, value=
-jisbd17-099          column=slide:title, timestamp=1500328162137, value={\x5Ctt
-                       happybase
-jisbd17-099          column=text:, timestamp=1500328162137, value=  \x5Cbegin{i
-                      temize}\x0A\x5Citem Hay varios paquetes para acceder a HBa
-100 row(s) in 8.7800 seconds
+1 row(s) in 0.0490 seconds
 \end{lstlisting}
 
   % MultipleColumnPrefixFilter
@@ -1722,13 +1793,16 @@ jisbd17-099          column=text:, timestamp=1500328162137, value=  \x5Cbegin{i
   fila
 
 \begin{lstlisting}
-hbase> scan 'jisbd17', {FILTER => "SingleColumnValueFilter('slide', 'title', =,'binary:HBase')"}
- jisbd17-085          column=slide:notes, timestamp=1500328162109, value=
- jisbd17-085          column=slide:title, timestamp=1500328162109, value=HBase
- jisbd17-085          column=text:, timestamp=1500328162109, value=  \x5Cbegin{b
-                      lock}{}\x0A    {\x5CLarge  HBase is a {\x5Ccolor{red} spar
-                      ...
-1 row(s) in 0.3610 seconds
+hbase> scan 'productos', {FILTER => "SingleColumnValueFilter('d', 'fabricante', =,'binary:Samsung')"}
+ROW                   COLUMN+CELL
+ tv40-sxx40           column=d:descripci\xC3\xB3n, timestamp=1528713898063, valu
+                      e=Televisi\xC3\xB3n Samsung, 40"...
+ tv40-sxx40           column=d:fabricante, timestamp=1528713898063, value=Samsun
+                      g
+ tv40-sxx40           column=d:nombre, timestamp=1528713898063, value=Samsung XX
+                      40
+...
+1 row(s) in 0.0500 seconds
 \end{lstlisting}
 
 % SingleColumnValueFilter
@@ -1762,46 +1836,46 @@ hbase> scan 'jisbd17', {FILTER => "SingleColumnValueFilter('slide', 'title', =,'
   \includegraphics[width=\textwidth]{img/filterlist3}
 \end{frame}
 
-\begin{frame}[fragile,allowframebreaks]
-  \frametitle{Filtros vs. {\tt get}}
-  \begin{itemize}
-  \item Por muy eficiente que se haga el filtrado, un {\tt scan} siempre va
-    a ser mucho más lento que obtener una fila con {\tt get}
-  \item P.ej (3580ms):
-\begin{lstlisting}
-hbase> scan 'wlinks', { COLUMNS => ['to:19'] }
-...
- Yilmar Mosquera      column=to:19, timestamp=1479230326585, value=
- Yukiko Iwai          column=to:19, timestamp=1479230347810, value=
-113 row(s) in 35.7690 seconds
-\end{lstlisting}
+% \begin{frame}[fragile,allowframebreaks]
+%   \frametitle{Filtros vs. {\tt get}}
+%   \begin{itemize}
+%   \item Por muy eficiente que se haga el filtrado, un {\tt scan} siempre va
+%     a ser mucho más lento que obtener una fila con {\tt get}
+%   \item P.ej (3580ms):
+% \begin{lstlisting}
+% hbase> scan 'wlinks', { COLUMNS => ['to:19'] }
+% ...
+%  Yilmar Mosquera      column=to:19, timestamp=1479230326585, value=
+%  Yukiko Iwai          column=to:19, timestamp=1479230347810, value=
+% 113 row(s) in 35.7690 seconds
+% \end{lstlisting}
 
-    \framebreak
+%     \framebreak
 
-  \item vs (18ms):
-\begin{lstlisting}
-hbase> get 'wlinks', '19', { COLUMNS => ['from'] }
-...
- from:Yilmar Mosquera timestamp=1479230326578, value=
- from:Yukiko Iwai     timestamp=1479230347796, value=
-113 row(s) in 0.1760 seconds
-\end{lstlisting}
+%   \item vs (18ms):
+% \begin{lstlisting}
+% hbase> get 'wlinks', '19', { COLUMNS => ['from'] }
+% ...
+%  from:Yilmar Mosquera timestamp=1479230326578, value=
+%  from:Yukiko Iwai     timestamp=1479230347796, value=
+% 113 row(s) in 0.1760 seconds
+% \end{lstlisting}
 
-  \item También existe una especificación de fila de inicio y final que son
-    más eficientes que un filtro {\em Row Prefix}:
+%   \item También existe una especificación de fila de inicio y final que son
+%     más eficientes que un filtro {\em Row Prefix}:
 
-\begin{lstlisting}
-hbase> scan 'wlinks', {STARTROW => '19', ENDROW => '20', COLUMNS => ['from'] }
-\end{lstlisting}
+% \begin{lstlisting}
+% hbase> scan 'wlinks', {STARTROW => '19', ENDROW => '20', COLUMNS => ['from'] }
+% \end{lstlisting}
 
-    Y en {\tt happybase}:
+%     Y en {\tt happybase}:
 
-\begin{lstlisting}[language=Python]
-table.scan(row_start='19', row_stop='20', columns=['from'])
-\end{lstlisting}
+% \begin{lstlisting}[language=Python]
+% table.scan(row_start='19', row_stop='20', columns=['from'])
+% \end{lstlisting}
 
-  \end{itemize}
-\end{frame}
+%   \end{itemize}
+% \end{frame}
 
 
 
@@ -2214,166 +2288,166 @@ CREATE INDEX ON :Etiqueta(nombre)
 
 
 
-\subsection{Arrays}
+% \subsection{Arrays}
 
-\begin{frame}[allowframebreaks]
-  \frametitle{Bases de Datos basadas en Arrays}
-  \begin{itemize}
-\item Suelen presentarse como bases de datos que soportan SQL y añaden
-  operaciones para trabajar con conjuntos de datos especiales (arrays)
-\item Son bases de datos muy especializadas y no las trataremos aquí
-\item Utilizadas para tratamiento de grandes cantidades de datos de forma
-  estadística o de modelado y OLAP
-\item Soportan también datos geográficos, ya que pueden definir rangos
-  numéricos de una o varias dimensiones (2D para cálculos geográficos)
-\item Ejemplos: MonetDB, SciDB, rasdaman
-  \end{itemize}
-\end{frame}
-
-
-\section{Nuestro trabajo de investigación}
-
-\begin{frame}
-  \frametitle{Investigación en NoSQL Data Engineering}
-
-  \begin{itemize}
-  \item NoSQL Data Engineering
-  \item Toolbox MDE para gestionar BBDD NoSQL
-    \begin{itemize}
-    \item Inferencia del esquema
-    \item Tratamiento de la variabilidad de entidades (versiones)
-    \item Generación de código de mappers ODM, transformación de bases de
-      datos, etc.
-    \end{itemize}
-  \end{itemize}
-
-  \url{https://github.com/catedrasaes-umu/NoSQLDataEngineering}
-
-\centering  \includegraphics[height=3em]{img/logo_catedra}%
-  ~\includegraphics[height=3em]{img/logo_modelum}
-
-\end{frame}
+% \begin{frame}[allowframebreaks]
+%   \frametitle{Bases de Datos basadas en Arrays}
+%   \begin{itemize}
+% \item Suelen presentarse como bases de datos que soportan SQL y añaden
+%   operaciones para trabajar con conjuntos de datos especiales (arrays)
+% \item Son bases de datos muy especializadas y no las trataremos aquí
+% \item Utilizadas para tratamiento de grandes cantidades de datos de forma
+%   estadística o de modelado y OLAP
+% \item Soportan también datos geográficos, ya que pueden definir rangos
+%   numéricos de una o varias dimensiones (2D para cálculos geográficos)
+% \item Ejemplos: MonetDB, SciDB, rasdaman
+%   \end{itemize}
+% \end{frame}
 
 
-\begin{frame}[fragile]
-  \frametitle{BBDD NoSQL sin esquema explícito}
-  \framesubtitle{El esquema se encuentra implícito en los datos}
-  \begin{columns}
-    \begin{column}{0.5\textwidth}
-\begin{lstlisting}[language=json,basicstyle=\tiny\tt]
-{
-  "person_id": "123",
-  "type": "Person",
-  "lastName": "Rush",
-  "firstName": "Christopher",
-  º"address": "C/Gran Via, 13, Madrid"º
-},
-{
-  "person_id": "456",
-  "type": "Person",
-  "lastName": "England",
-  "firstName": "Wayne",
-  º"address": {
-    "street": "Av. Pinos, 24",
-    "city": "Murcia" }º
-},
-{
-  "person_id": "789",
-  "type": "Person",
-  "lastName": "Hoover",
-  "firstName": "Quinton",
-  "address": "Ronda Norte, 15, Murcia",
-  @"age": 35@
-}
-      \end{lstlisting}
-    \end{column}
-    \begin{column}{0.05\textwidth}
-      \begin{center}
-        \usetikzlibrary{decorations.pathreplacing}
-        \begin{tikzpicture}
-          \draw [decorate,decoration={brace,amplitude=10pt,mirror,raise=4pt},yshift=0pt]
-          (3.5,0.65) -- (3.5,6.5) node [black,midway,xshift=0.8cm] {\footnotesize};
-        \end{tikzpicture}
-      \end{center}
-    \end{column}
-    \begin{column}{0.45\textwidth}
-      \vspace{1cm}
-      \usetikzlibrary{arrows}
-      \begin{tikzpicture}
-        [node distance = .5\textwidth, auto, font=\normalsize,
-        every node/.style={node distance=.5\textwidth},
-        db/.style={cylinder, cylinder uses custom fill, cylinder end fill=yellow!50,
-        cylinder body fill=yellow!25, aspect=.3, shape border rotate=90, draw,
-        inner sep=5pt, text width=.3\textwidth, text height=.2\textwidth, text badly centered}]
-        \node [db] (nosqldb) {{\tiny Base de datos NoSQL}};
-        \path[draw=black,solid,line width=2mm,fill=black, preaction={-triangle 90,thin,draw,shorten >=-1mm}] (-3.5, 0) -- (-1.35, 0);
-      \end{tikzpicture}
-      \hspace{-2cm}
-\begin{small}
-      \begin{itemize}
-        \item Datos no uniformes
-        \item Existencia de distintas versiones
-      \end{itemize}
-    \end{small}
-  \end{column}
-  \end{columns}
-\end{frame}
+% \section{Nuestro trabajo de investigación}
 
-\begin{frame}
-  \frametitle{Proceso de inferencia NoSQLSchema}
-  \framesubtitle{Vista general de la arquitectura MDE empleada}
-  \centering
-  \begin{tikzpicture}
-[node distance = .1\textwidth, auto, font=\tiny,
-every node/.style={node distance=.25\textwidth},
-db/.style={cylinder, cylinder uses custom fill, cylinder end fill=yellow!50,
-cylinder body fill=yellow!25, aspect=.3, shape border rotate=90, draw,
-inner sep=5pt, text width=.1\textwidth, text badly centered},
-process/.style={ellipse, draw, fill=red!10, inner sep=5pt, text width=.12\textwidth, text badly centered},
-prod/.style={rectangle, draw, fill=green!10, inner sep=5pt, text width=.12\textwidth, text badly centered}]
-% Draw nodes
-\node [db] (nosqldb) {Base de datos\\NoSQL};
-\node [process, right of=nosqldb] (mapreduce) {Map-reduce};
-\node [prod, right of=mapreduce] (ov) {Colección\\de objetos JSON};
-\node [process, right of=ov] (jsoninject) {Transformación\\de objetos};
-\node [prod, below=.05\textwidth of jsoninject] (jm) {Colección\\de versiones};
-\node [process,below=.05\textwidth of jm] (schrev) {Proceso de\\ingeniería\\inversa};
-\node [prod, left of=schrev] (schmod) {Modelo\\NoSQLSchema};
-\node [process, left of=schmod] (appgen) {Generación de herramientas};
-\node [prod, left of=appgen,label=below:Herramientas] (apps) {$\Rightarrow$Visualización de esquemas\\\vspace{0.1cm}$\Rightarrow$Validación de datos\\\vspace{0.1cm}$\Rightarrow$Asistencia a la migración};
+% \begin{frame}
+%   \frametitle{Investigación en NoSQL Data Engineering}
 
-\node [prod, below=.05\textwidth of schmod] (schemamm) {Metamodelo\\NoSQLSchema};
-%%%%%%%%%%%%%%%%
-% Draw the links between forces
-\path[-{Stealth},very thick]
-(nosqldb) edge (mapreduce)
-(mapreduce) edge (ov)
-(ov) edge (jsoninject)
-(jsoninject) edge (jm)
-(jm) edge (schrev)
-(schrev) edge (schmod)
-(schmod) edge (appgen)
-(appgen) edge (apps);
+%   \begin{itemize}
+%   \item NoSQL Data Engineering
+%   \item Toolbox MDE para gestionar BBDD NoSQL
+%     \begin{itemize}
+%     \item Inferencia del esquema
+%     \item Tratamiento de la variabilidad de entidades (versiones)
+%     \item Generación de código de mappers ODM, transformación de bases de
+%       datos, etc.
+%     \end{itemize}
+%   \end{itemize}
 
-\path[-{Stealth},dotted,very thick]
-(schmod) edge node[right] {<<conforma>>} (schemamm);
-\end{tikzpicture}
-\end{frame}
+%   \url{https://github.com/catedrasaes-umu/NoSQLDataEngineering}
 
-\begin{frame}
-  \frametitle{Metamodelo NoSQLSchema}
-  \includegraphics[width=\textwidth]{img/mmnosql-schema}
-\end{frame}
+% \centering  \includegraphics[height=3em]{img/logo_catedra}%
+%   ~\includegraphics[height=3em]{img/logo_modelum}
 
-\begin{frame}
-  \frametitle{Visualizaciones (i)}
-  \includegraphics[width=\textwidth]{img/siriusglobalunion}
-\end{frame}
+% \end{frame}
 
-\begin{frame}
-  \frametitle{Visualizaciones (ii)}
-  \includegraphics[width=\textwidth]{img/siriusglobal}
-\end{frame}
+
+% \begin{frame}[fragile]
+%   \frametitle{BBDD NoSQL sin esquema explícito}
+%   \framesubtitle{El esquema se encuentra implícito en los datos}
+%   \begin{columns}
+%     \begin{column}{0.5\textwidth}
+% \begin{lstlisting}[language=json,basicstyle=\tiny\tt]
+% {
+%   "person_id": "123",
+%   "type": "Person",
+%   "lastName": "Rush",
+%   "firstName": "Christopher",
+%   º"address": "C/Gran Via, 13, Madrid"º
+% },
+% {
+%   "person_id": "456",
+%   "type": "Person",
+%   "lastName": "England",
+%   "firstName": "Wayne",
+%   º"address": {
+%     "street": "Av. Pinos, 24",
+%     "city": "Murcia" }º
+% },
+% {
+%   "person_id": "789",
+%   "type": "Person",
+%   "lastName": "Hoover",
+%   "firstName": "Quinton",
+%   "address": "Ronda Norte, 15, Murcia",
+%   @"age": 35@
+% }
+%       \end{lstlisting}
+%     \end{column}
+%     \begin{column}{0.05\textwidth}
+%       \begin{center}
+%         \usetikzlibrary{decorations.pathreplacing}
+%         \begin{tikzpicture}
+%           \draw [decorate,decoration={brace,amplitude=10pt,mirror,raise=4pt},yshift=0pt]
+%           (3.5,0.65) -- (3.5,6.5) node [black,midway,xshift=0.8cm] {\footnotesize};
+%         \end{tikzpicture}
+%       \end{center}
+%     \end{column}
+%     \begin{column}{0.45\textwidth}
+%       \vspace{1cm}
+%       \usetikzlibrary{arrows}
+%       \begin{tikzpicture}
+%         [node distance = .5\textwidth, auto, font=\normalsize,
+%         every node/.style={node distance=.5\textwidth},
+%         db/.style={cylinder, cylinder uses custom fill, cylinder end fill=yellow!50,
+%         cylinder body fill=yellow!25, aspect=.3, shape border rotate=90, draw,
+%         inner sep=5pt, text width=.3\textwidth, text height=.2\textwidth, text badly centered}]
+%         \node [db] (nosqldb) {{\tiny Base de datos NoSQL}};
+%         \path[draw=black,solid,line width=2mm,fill=black, preaction={-triangle 90,thin,draw,shorten >=-1mm}] (-3.5, 0) -- (-1.35, 0);
+%       \end{tikzpicture}
+%       \hspace{-2cm}
+% \begin{small}
+%       \begin{itemize}
+%         \item Datos no uniformes
+%         \item Existencia de distintas versiones
+%       \end{itemize}
+%     \end{small}
+%   \end{column}
+%   \end{columns}
+% \end{frame}
+
+% \begin{frame}
+%   \frametitle{Proceso de inferencia NoSQLSchema}
+%   \framesubtitle{Vista general de la arquitectura MDE empleada}
+%   \centering
+%   \begin{tikzpicture}
+% [node distance = .1\textwidth, auto, font=\tiny,
+% every node/.style={node distance=.25\textwidth},
+% db/.style={cylinder, cylinder uses custom fill, cylinder end fill=yellow!50,
+% cylinder body fill=yellow!25, aspect=.3, shape border rotate=90, draw,
+% inner sep=5pt, text width=.1\textwidth, text badly centered},
+% process/.style={ellipse, draw, fill=red!10, inner sep=5pt, text width=.12\textwidth, text badly centered},
+% prod/.style={rectangle, draw, fill=green!10, inner sep=5pt, text width=.12\textwidth, text badly centered}]
+% % Draw nodes
+% \node [db] (nosqldb) {Base de datos\\NoSQL};
+% \node [process, right of=nosqldb] (mapreduce) {Map-reduce};
+% \node [prod, right of=mapreduce] (ov) {Colección\\de objetos JSON};
+% \node [process, right of=ov] (jsoninject) {Transformación\\de objetos};
+% \node [prod, below=.05\textwidth of jsoninject] (jm) {Colección\\de versiones};
+% \node [process,below=.05\textwidth of jm] (schrev) {Proceso de\\ingeniería\\inversa};
+% \node [prod, left of=schrev] (schmod) {Modelo\\NoSQLSchema};
+% \node [process, left of=schmod] (appgen) {Generación de herramientas};
+% \node [prod, left of=appgen,label=below:Herramientas] (apps) {$\Rightarrow$Visualización de esquemas\\\vspace{0.1cm}$\Rightarrow$Validación de datos\\\vspace{0.1cm}$\Rightarrow$Asistencia a la migración};
+
+% \node [prod, below=.05\textwidth of schmod] (schemamm) {Metamodelo\\NoSQLSchema};
+% %%%%%%%%%%%%%%%%
+% % Draw the links between forces
+% \path[-{Stealth},very thick]
+% (nosqldb) edge (mapreduce)
+% (mapreduce) edge (ov)
+% (ov) edge (jsoninject)
+% (jsoninject) edge (jm)
+% (jm) edge (schrev)
+% (schrev) edge (schmod)
+% (schmod) edge (appgen)
+% (appgen) edge (apps);
+
+% \path[-{Stealth},dotted,very thick]
+% (schmod) edge node[right] {<<conforma>>} (schemamm);
+% \end{tikzpicture}
+% \end{frame}
+
+% \begin{frame}
+%   \frametitle{Metamodelo NoSQLSchema}
+%   \includegraphics[width=\textwidth]{img/mmnosql-schema}
+% \end{frame}
+
+% \begin{frame}
+%   \frametitle{Visualizaciones (i)}
+%   \includegraphics[width=\textwidth]{img/siriusglobalunion}
+% \end{frame}
+
+% \begin{frame}
+%   \frametitle{Visualizaciones (ii)}
+%   \includegraphics[width=\textwidth]{img/siriusglobal}
+% \end{frame}
 
 \section{Referencias}
 
