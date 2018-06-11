@@ -109,6 +109,7 @@ breaklines=true,
 %numbers=left, numberstyle=\tiny, stepnumber=2, numbersep=10pt,
 xleftmargin=0.02\textwidth,
 xrightmargin=0.02\textwidth,
+mathescape=false,
 language=java, % Por defecto
 literate={«}{{\guillemotleft}}1
            {»}{{\guillemotright}}1
@@ -458,7 +459,7 @@ Universidad de Murcia\\
 
 \section{Introducción a los sistemas NoSQL}
 
-\input nosql
+%\input nosql
 
 \section{Tipos de Sistemas NoSQL}
 
@@ -1010,32 +1011,52 @@ results = db.productos.map_reduce(map, reduce, "valoración_media")
   \centering\includegraphics[height=.85\textheight]{img/mongo-aggregation}
 \end{frame}
 
-\begin{frame}[fragile,fragile,allowframebreaks]
+\begin{frame}[fragile,allowframebreaks]
   \frametitle{Framework de agregación}
-Framework de agregación:
-\url{https://docs.mongodb.com/manual/reference/operator/aggregation/}.
 
-\begin{lstlisting}[language=python]
-jisbd17.aggregate( [ {'$project' : { 'Id' : 1 }}, {'$limit': 20} ])
+\begin{itemize}
+\item El {\em framework de agregación} ofrece un API alternativo a
+  Map-Reduce que también explota la {\bf distribución}
+\item Especificaciones basadas en {\bfseries\itshape pipelines}
+\item Las {\em pipelines\/} se ejecutan en orden, y existen de varios
+  tipos:
+  \begin{itemize}
+  \item Proyección y cambio de campos: \verb|$project|, \verb|$addFields|,
+    \verb|$redact|, etc.
+  \item Agrupamiento y expansión: \verb|$group|, \verb|$unwind|
+  \item Limitación: \verb|$limit|, \verb|$sample|, \verb|$skip|
+  \item JOIN: \verb|$lookup|
+  \item Filtros: \verb|$match|
+  \item Ordenación: \verb|$sort|
+  \end{itemize}
+\end{itemize}
+
+\begin{lstlisting}[language=python,basicstyle=\tt]
+db.collección.aggregate( [
+ <acción1>,
+ <acción2>,
+ ...,
+ <acciónN>])
 \end{lstlisting}
 
 \framebreak
 
+Media de valoraciones por fabricante:
+
 \begin{lstlisting}[language=python]
-hbase_by_length = jisbd17.aggregate( [
-        {'$project': {
-            'text' : {'$ifNull' : ['$text', '']}
-        }},
-        {'$project' : {
-             'id' : {'$strLenBytes': '$text'},
-             'value' : {'$literal' : 1}
-        }},
-        {'$group' : {
-            '_id' : '$id',
-            'count' : {'$sum' : '$value'}
-        }},
-        {'$sort' : { '_id' : 1}}
-        ])
+val_media = db.productos.aggregate( [
+ {'$project': {
+     'fabricante' : True,
+     'valoraciones' : True}
+ },
+ {'$unwind' : '$valoraciones' },
+ {'$group' : {
+     '_id' : '$fabricante',
+     'avg_val' :
+       {'$avg' : '$valoraciones.estrellas'}
+ }},
+ {'$sort' : { 'avg_val' : 1}}
+ ])
 \end{lstlisting}
 
 \framebreak
@@ -1044,7 +1065,7 @@ Se pueden añadir etapas. En particular, por ejemplo, se puede {\bf filtrar}
 inicialmente añadiendo al principio:
 
 \begin{lstlisting}[language=python]
-{'$match': { 'text' : {'$regex': 'HBase'}}}
+{'$match': { 'nombre' : {'$regex': 'LG.*'}}}
 \end{lstlisting}
 
 La construcción
@@ -1053,25 +1074,27 @@ equivalente a un {\bf JOIN}
 
 \framebreak
 
-\begin{block}{}
-  P. ej., listar los títulos de las transparencias referenciadas
-  (además de su {\tt \_id})
+  P. ej., imaginemos que existe la colección {\tt usuarios} y que tienen
+  ciudad. Agrupamos valoración por fabricante y por ciudad:
 
-\begin{lstlisting}[language=python]
-jisbd17.aggregate( [
-    {'$lookup' : {
-        "from": "jisbd17",
-        "localField": "xref",
-        "foreignField": "_id",
-        "as": "xrefTitles"
-    }},
-    {'$project' : {
-        '_id' : True,
-        'xref' : True,
-        'xrefTitles.title' : True
-    }}])
+\begin{lstlisting}[language=python,basicstyle=\scriptsize\tt]
+val_media = db.productos.aggregate( [
+ {'$project': { 'fabricante' : True,
+              'valoraciones' : True}},
+ {'$unwind' : '$valoraciones' },
+ {'$lookup' : {
+   "from": "usuarios",
+   "localField": "$valoraciones.user",
+   "foreignField": "_id",
+   "as": "user"} },
+ { "$unwind" : "$user" },
+ {'$group' : {
+     '_id' : [ '$fabricante', '$user.ciudad ],
+     'avg_val' :
+       {'$avg' : '$valoraciones.estrellas'} }},
+ {'$sort' : { 'avg_val' : 1}}
+ ])
 \end{lstlisting}
-\end{block}
 
 \end{frame}
 
@@ -1080,24 +1103,25 @@ jisbd17.aggregate( [
 \begin{frame}[allowframebreaks]
   \frametitle{Bases de Datos Columnares}
 \begin{itemize}
-\item Influenciadas por el Paper de Google de 2006 sobre BigTable\footnote{Chang, Fay; Dean, Jeffrey; Ghemawat, Sanjay; Hsieh,
-    Wilson C; Wallach, Deborah A; Burrows, Michael ‘Mike’; Chandra,
-    Tushar; Fikes, Andrew; Gruber, Robert E (2006), {\em Bigtable: A
-      Distributed Storage System for Structured Data},
+\item Influenciadas por el artículo de Google de 2006 sobre
+  BigTable\footnote{Chang, Fay; Dean, Jeffrey; Ghemawat, Sanjay; Hsieh,
+    Wilson C; Wallach, Deborah A; Burrows, Michael ‘Mike’; Chandra, Tushar;
+    Fikes, Andrew; Gruber, Robert E (2006), {\em Bigtable: A Distributed
+      Storage System for Structured Data},
     (\href{http://research.google.com/archive/bigtable-osdi06.pdf}{PDF}),
     Google.}
 \item En general, parecidos a las tablas SQL, salvo que cada fila puede:
   \begin{itemize}
-  \item Tener un conjunto de columnas diferente
+  \item Tener un {\bf conjunto de columnas diferente}
 \item Almacenar {\em series temporales} dentro de una misma fila (varias
   {\em versiones} de un mismo conjunto de columnas)
   \end{itemize}
 \item Cada fila tiene un identificador y es un agregado de familias de
   columnas ({\em column family})
-
 \item Cambian el modo de almacenamiento para favorecer ciertas aplicaciones
-  (almacenamiento por columnas en vez de por filas)
-\item Bases de datos: HBase, Cassandra, Vertica, H-Store
+  (almacenamiento {\bf por columnas en vez de por filas})
+\item Bases de datos: {\bf HBase}, {\bf Cassandra}, {\bf Vertica}, {\bf
+    H-Store}
 \end{itemize}
 \end{frame}
 
@@ -1267,65 +1291,68 @@ hbase(main):001:0> status
 \item Creación de tablas, especificando las {\em column families}
   iniciales:
 \begin{lstlisting}[language=ruby]
-hbase> create 'slides', 'slide', 'image', 'text', 'xref'
+hbase> create 'productos', 'd', 'val'
 0 row(s) in 1.3810 seconds
 => Hbase::Table - slides
 \end{lstlisting}
 
-\item Se crea la tabla {\tt presentaciones} con cuatro familias de columnas,
-  {\tt slide}, que guardará los datos de la transparencia, {\tt image}, que
-  guarda la imagen de la diapositiva, {\tt text}, que guardará el texto
-  de la diapositiva, y {\tt xref}, que guarda las referencias a otras slides
+\item Se crea la tabla {\tt productos} con dos familias de columnas,
+  {\tt d}, que guardará los datos del producto, y {\tt val}, que
+  guardará las valoraciones de los usuarios
 
-\framebreak
-
-\item Inserción de valores. El {\em shell\/} es limitado y sólo permite
-  añadir una columna a la vez:
-\begin{lstlisting}[language=ruby,basicstyle=\scriptsize\tt]
-hbase(main):006:0> put 'slides', 'jisbd17-000', 'slide:title', 'Portada'
-0 row(s) in 0.1730 seconds
-hbase(main):007:0> put 'slides', 'jisbd17-000', 'slide:notes', 'Notas iniciales'
-0 row(s) in 0.0110 seconds
-\end{lstlisting}
-
-  (el formato de especificación es {\bf familia:columna})
-
-\framebreak
-
-\item Obtener el documento:
-
-\begin{lstlisting}[language=ruby,basicstyle=\tiny\tt]
-hbase> get 'slides', 'jisbd17-000'
-COLUMN                CELL
- slide:notes          timestamp=1500300013076, value=Notas iniciales
- slide:title          timestamp=1500299771997, value=Portada
-2 row(s) in 0.1700 seconds
-\end{lstlisting}
-
-\item O toda la tabla:
-\begin{lstlisting}[language=ruby,basicstyle=\tiny\tt]
-base> scan 'slides'
-ROW                   COLUMN+CELL
- jisbd17-000          column=slide:notes, timestamp=1500300013076, value=Notas i
-                      niciales
- jisbd17-000          column=slide:title, timestamp=1500299771997, value=Portada
-1 row(s) in 0.0400 seconds
-\end{lstlisting}
+\item Se puede insertar datos y consultar desde el {\em shell\/}, pero lo
+  veremos desde Python
 \end{itemize}
+\end{frame}
 
+
+
+\begin{frame}[fragile]
+  \frametitle{{\tt happybase}}
+  \begin{itemize}
+\item Hay varios paquetes para acceder a HBase
+\item Incluso podríamos haberlo implementado desde JRuby y el {\em shell\/}
+  de HBase
+\item Pero lo haremos desde Python ya que lo hemos usado en todo el curso,
+  usando la librería {\tt
+    happybase}\footnote{\url{https://happybase.readthedocs.io/en/latest/}.}
+\item Hace uso del protocolo remoto Thrift
+\item Instalada en la máquina virtual. Si no, para instalarla:
+\begin{lstlisting}[language=bash]
+$ pip install happybase
+\end{lstlisting}
+\item El API es sencillo, ya que HBase ofrece relativamente pocas
+  operaciones
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,allowframebreaks]
+  \frametitle{Creación de la base de datos}
+\begin{lstlisting}[language=python]
+try:
+    connection.create_table(
+  'productos',
+    {
+      'd': dict(max_versions=1),
+      'val' : dict(max_versions=1,compression='GZ')
+    })
+except:
+    print("Error creando database: productos")
+    pass
+\end{lstlisting}
 \end{frame}
 
 \begin{frame}[allowframebreaks]
   \frametitle{Opciones de creación de tablas}
 \begin{itemize}
-\item {\tt VERSIONS} es por defecto 1, y se pueden especificar todas o un
-  número finito de ellas
-\item En el caso de la familia {\tt text}, aplicamos compresión, ya que la
-  familia albergará gran cantidad de texto
-\item También aplicamos al parámetro {\tt BLOOMFILTER} el valor {\tt ROW}
-\framebreak
-\item {\tt BLOOMFILTER} puede estar deshabilitado ({\tt NONE}), o tomar dos
-  valores:
+\item {\tt max\_versions} es por defecto 1, y se pueden especificar todas o
+  un número finito de ellas
+\item En el caso de la familia {\tt val}, aplicamos compresión, ya que la
+  familia puede albergar gran cantidad de texto
+\item También aplicamos al parámetro {\tt bloom\_filter\_type} el valor
+  {\tt ROW} \framebreak
+\item {\tt bloom\_filter\_type} puede estar deshabilitado ({\tt NONE}), o
+  tomar dos valores:
   \begin{description}[ROW]
   \item[{\tt ROW}] Permite establecer rápidamente si una fila no existe
     \begin{itemize}
@@ -1349,44 +1376,8 @@ ROW                   COLUMN+CELL
 \end{frame}
 
 
-\begin{frame}[fragile]
-  \frametitle{{\tt happybase}}
-  \begin{itemize}
-\item Hay varios paquetes para acceder a HBase
-\item Incluso podríamos haberlo implementado desde JRuby y el {\em shell\/}
-  de HBase
-\item Pero lo haremos desde Python ya que lo hemos usado en todo el curso,
-  usando la librería {\tt
-    happybase}\footnote{\url{https://happybase.readthedocs.io/en/latest/}.}
-\item Hace uso del protocolo remoto Thrift
-\item Instalada en la máquina virtual. Si no, para instalarla:
-\begin{lstlisting}[language=bash]
-$ sudo pip2 install happybase
-\end{lstlisting}
-\item El API es sencillo, ya que HBase ofrece relativamente pocas
-  operaciones
-\end{itemize}
-\end{frame}
-
-\begin{frame}[fragile,fragile,fragile,allowframebreaks]
+\begin{frame}[fragile,allowframebreaks]
   \frametitle{Creación de la base de datos}
-\begin{lstlisting}[language=python]
-try:
-    connection.create_table(
-        "jisbd17",
-        {
-            'slide': dict(bloom_filter_type='ROW',max_versions=1),
-            'image' : dict(compression='GZ',max_versions=1),
-            'text' : dict(compression='GZ',max_versions=1),
-            'xref' : dict(bloom_filter_type='ROWCOL',max_versions=1)
-        })
-except:
-    print ("Database jisbd17 already exists.")
-    pass
-\end{lstlisting}
-
-  \framebreak
-
 Podemos copiar la tabla {\tt jisbd17} de Mongo (no se copia {\tt xref}
 porque se hará una optimización posterior):
 
