@@ -16,4 +16,3 @@ RUN apt-get update \
     && curl -L https://github.com/docker/compose/releases/download/1.21.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
-    
