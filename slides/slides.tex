@@ -2180,6 +2180,20 @@ CREATE (nodo1:Etiqueta1 { propX: valorX, ... } ),
 \end{lstlisting}
 \end{frame}
 
+\begin{frame}[fragile]
+  \frametitle{En nuestro caso de productos}
+\begin{lstlisting}[language=cypher]
+CREATE (n:Producto
+          {nombre: 'LG T42',
+           descripción : 'Televisión LG 42"',
+           precio : 655,
+           fabricante: "LG",
+           stock: 10,
+           tags : 'tv,42",led,hdmi,smart-tv' })
+\end{lstlisting}
+\end{frame}
+
+
 \begin{frame}[fragile,allowframebreaks]
   \frametitle{Consultas}
   \begin{itemize}
@@ -2203,9 +2217,9 @@ RETURN [DISTINCT] nodos
     relaciones
 \item Después, con {\tt RETURN} se especifica lo que devolver
 \begin{lstlisting}[language=cypher]
-MATCH (n:Post) RETURN n
+MATCH (n:Producto) RETURN n
 \end{lstlisting}
-(retorna todos los {\em posts})
+(retorna todos los productos)
 
 \begin{lstlisting}[language=cypher]
 MATCH (n { nombre: 'Diego' }) RETURN n.edad;
@@ -2236,9 +2250,9 @@ MATCH (nieto)-[:HIJO_DE]->()-[:HIJO_DE]->(abuelo)
   \item Un patrón común es la creación de nodos a partir de otros:
 \item P. ej. apuntar los hijos de alguien:
 \begin{lstlisting}[language=cypher]
-MATCH (padre:Persona { nombre: 'Diego' })
-CREATE (violeta:Persona {nombre:'Violeta'}),
-       (martina:Persona {nombre:'Martina'}),
+MATCH (padre:Usuario { nombre: 'Diego' })
+CREATE (violeta:Usuario {nombre:'Violeta'}),
+       (martina:Usuario {nombre:'Martina'}),
        (violeta)-[:HIJO_DE]->(padre),
        (martina)-[:HIJO_DE]->(padre)
 \end{lstlisting}
@@ -2253,13 +2267,71 @@ CREATE (violeta:Persona {nombre:'Violeta'}),
 \item P. ej. si alguna de mis hijas existe, no se crea. Sólo se crean las
   que no existen
 \begin{lstlisting}[language=cypher]
-MATCH (padre:Persona { nombre: 'Diego' })
-MERGE (violeta:Persona {nombre: 'Violeta'}),
-      (martina:Persona {nombre: 'Martina'}),
-      (violeta)-[:HIJO_DE]->(padre),
-      (martina)-[:HIJO_DE]->(padre)
+MATCH (padre:Usuario { nombre: 'Diego' })
+MERGE (violeta:Usuario {nombre: 'Violeta'})
+MERGE (martina:Usuario {nombre: 'Martina'})
+MERGE (violeta)-[:HIJO_DE]->(padre)
+MERGE (martina)-[:HIJO_DE]->(padre)
 \end{lstlisting}
   \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Podemos modelar los {\em tags\/} como nodos}
+\begin{lstlisting}[language=cypher]
+MATCH (n:Producto {nombre: 'LG T42'})
+   MERGE (a:Tag {nombre:'tv'})
+   MERGE (a) -[:TAG]-> (n)
+   MERGE (b:Tag {nombre:'42"'})
+   MERGE (b) -[:TAG]-> (n)
+   MERGE (c:Tag {nombre:'led'})
+   MERGE (c) -[:TAG]-> (n)
+   MERGE (d:Tag {nombre:'hdmi'})
+   MERGE (d) -[:TAG]-> (n)
+   MERGE (e:Tag {nombre:'smart-tv'})
+   MERGE (e) -[:TAG]-> (n)
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Grafo:}
+  \includegraphics[width=\textwidth]{img/neo4j1}
+\end{frame}
+
+\begin{frame}[fragile,fragile]
+  \frametitle{También los usuarios y sus valoraciones}
+\begin{lstlisting}[language=cypher]
+CREATE (:Usuario {nombre: 'Diego'}),
+       (:Usuario {nombre: 'Pepe'})
+\end{lstlisting}
+
+\begin{lstlisting}[language=cypher]
+MATCH (u:Usuario {nombre: 'Diego'}),
+      (p:Producto {nombre: 'Samsung XX40'})
+MERGE (u)-[:VAL {estrellas:5, comment: "Like!"}]->(p)
+\end{lstlisting}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Grafo:}
+  \includegraphics[width=\textwidth]{img/neo4j2}
+\end{frame}
+
+\begin{frame}[fragile,allowframebreaks]
+  \frametitle{Camino más corto entre dos usuarios}
+  \begin{itemize}
+  \item Puede servir para encontrar productos relacionados para sugerir a
+    cada uno
+  \item Se puede {\em aumentar} con información geográfica, información de
+    amistad, etc.
+  \end{itemize}
+\begin{lstlisting}[language=cypher]
+MATCH p=shortestPath( (u1:Usuario {nombre: "Diego"})-[*]-(u2:Usuario {nombre: "Pepe"}) ) RETURN p
+\end{lstlisting}
+  \begin{center}
+    \includegraphics[height=.5\textheight]{img/neo4j3}
+  \end{center}
 \end{frame}
 
 % \begin{frame}[fragile]
