@@ -179,24 +179,24 @@
 \usebox{\network}
 \end{center}%
 }%
-\only<2>{
-\vspace*{-13em}
-  \begin{block}{Almacenamiento distribuido}
-    \begin{itemize}
-    \item Desde los 90's: Clústers/NOC/COW: procesamiento masivamente
-      paralelo
-\begin{center}
-{\color{red}SIN EMBARGO...}
-\end{center}
-\item Almacenamiento no distribuido
-\item Ahora los nodos $\Rightarrow$ también {\bf almacenamiento}
-\item Minimizar el verdadero cuello de botella: {\bf trasiego de
-    información por la red}
-    \end{itemize}
+% \only<2>{
+% \vspace*{-13em}
+%   \begin{block}{Almacenamiento distribuido}
+%     \begin{itemize}
+%     \item Desde los 90's: Clústers/NOC/COW: procesamiento masivamente
+%       paralelo
+% \begin{center}
+% {\color{red}SIN EMBARGO...}
+% \end{center}
+% \item Almacenamiento no distribuido
+% \item Ahora los nodos $\Rightarrow$ también {\bf almacenamiento}
+% \item Minimizar el verdadero cuello de botella: {\bf trasiego de
+%     información por la red}
+%     \end{itemize}
 
-  \end{block}%
-}%
-\only<3>{
+%   \end{block}%
+% }%
+\only<2>{
 \vspace*{-10em}
 \begin{block}{Procesamiento distribuido}
 \begin{itemize}
@@ -210,7 +210,7 @@
 \end{itemize}
 \end{block}
 }%
-\only<4>{
+\only<3>{
 \vspace*{-9em}
 \begin{block}{Procesamiento distribuido}
 \begin{itemize}
@@ -221,22 +221,22 @@
 \end{itemize}
 \end{block}%
 }%
-\only<5>{
-\vspace*{-13em}
-\begin{block}{Modelo de datos}
-\begin{itemize}
-  \item El modelo relacional limita a tablas con valores primitivos y
-    relaciones {\em Primary Key\/}/{\em Foreign Key}
-  \item Pero en programación se utilizan {\bf listas}, {\bf arrays}, {\bf
-      tipos de datos compuestos} ({\color{red}{\em gap\/} semántico})
-  \item ACID es {\bf muy compleja y costosa} en ambientes distribuidos
-    (quizá {\bf no necesaria} en algunas aplicaciones)
-\end{itemize}
-\end{block}%
-}%
-\only<6>{
+% \only<4>{
+% \vspace*{-13em}
+% \begin{block}{Modelo de datos}
+% \begin{itemize}
+%   \item El modelo relacional limita a tablas con valores primitivos y
+%     relaciones {\em Primary Key\/}/{\em Foreign Key}
+%   \item Pero en programación se utilizan {\bf listas}, {\bf arrays}, {\bf
+%       tipos de datos compuestos} ({\color{red}{\em gap\/} semántico})
+%   \item ACID es {\bf muy compleja y costosa} en ambientes distribuidos
+%     (quizá {\bf no necesaria} en algunas aplicaciones)
+% \end{itemize}
+% \end{block}%
+% }%
+\only<4>{
 \vspace*{-10em}
-\begin{block}{Modelo de datos (ii)}
+\begin{block}{Modelo de datos}
 \begin{itemize}
 \item ¿Si se pudiera ver como un {\bf GRAN ARRAY}?
 \begin{itemize}
@@ -389,29 +389,29 @@ UPDATE users SET first_name =
 
 \begin{frame}[allowframebreaks]
   \frametitle{Modelado de datos en NoSQL}
-El modelado de datos debe ser:
-  \begin{itemize}
-  \item Realizado al mayor nivel de abstracción posible
-  \item Independiente de la tecnología subyacente
-  \end{itemize}
-Sin embargo, en NoSQL:
-  \begin{itemize}
-  \item Se tiene que tener en cuenta el diseño {\bf distribuido}
-  \item {\bf Optimización guiada por las consultas}
-  \end{itemize}
-
-  \framebreak
-Con respecto al modelo de datos:
 
 \begin{itemize}
-\item Se mantienen los conceptos de entidad, relación, cardinalidades, etc.
-\item El modelado relacional se centra en especificar {\bf qué datos
-    tenemos y podemos ofrecer}
-\item El modelo NoSQL se centra en {\bf optimizar qué
-    consultas vamos a servir}
+\item En general ofrecen más {\bf flexibilidad} en el modelado de datos:
+  \begin{itemize}
+  \item {\bf Documentos}: Posibilidad de {\bf agregación} (además de
+    referencia)
+  \item {\bf Grafos}: Gran número de relaciones entre elementos
+  \end{itemize}
+\item {\bf Optimización guiada por las consultas}
 \item Es ``barato'' {\bf duplicar (desnormalizar)} los datos si con ello se
   consigue {\bf mayor eficiencia de acceso}
 \end{itemize}
+
+%   \framebreak
+% Con respecto al modelo de datos:
+
+% \begin{itemize}
+% \item Se mantienen los conceptos de entidad, relación, cardinalidades, etc.
+% \item El modelado relacional se centra en especificar {\bf qué datos
+%     tenemos y podemos ofrecer}
+% \item El modelo NoSQL se centra en {\bf optimizar qué
+%     consultas vamos a servir}
+% \end{itemize}
 
 \end{frame}
 
@@ -421,27 +421,27 @@ Con respecto al modelo de datos:
   \centering\includegraphics[height=.81\textheight]{img/gates}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Representación de relaciones}
+% \begin{frame}
+%   \frametitle{Representación de relaciones}
 
-  Las relaciones uno a muchos (e.g. {\tt positions}) en el modelo
-  relacional:
+%   Las relaciones uno a muchos (e.g. {\tt positions}) en el modelo
+%   relacional:
 
-\begin{itemize}
-\item Normalización usando varias tablas ({\tt Positions} con
-  {\tt user\_id})
-  \begin{itemize}
-  \item Necesidad de más de una tabla
-  \item Necesidad de uso de {\tt JOIN} $\Rightarrow$ ineficiencia
-  \end{itemize}
-\item Algunos SGBDR ofrecen la posibilidad de tener tipos de datos
-  estructurados y campos XML o JSON. (P. ej. PostgreSQL)
-  \begin{itemize}
-  \item Alternativa interesante, aunque...
-  \item No son estándar
-  \end{itemize}
-\end{itemize}
-\end{frame}
+% \begin{itemize}
+% \item Normalización usando varias tablas ({\tt Positions} con
+%   {\tt user\_id})
+%   \begin{itemize}
+%   \item Necesidad de más de una tabla
+%   \item Necesidad de uso de {\tt JOIN} $\Rightarrow$ ineficiencia
+%   \end{itemize}
+% \item Algunos SGBDR ofrecen la posibilidad de tener tipos de datos
+%   estructurados y campos XML o JSON. (P. ej. PostgreSQL)
+%   \begin{itemize}
+%   \item Alternativa interesante, aunque...
+%   \item No son estándar
+%   \end{itemize}
+% \end{itemize}
+% \end{frame}
 
 \begin{frame}[plain,fragile]
 %  \frametitle{CV como un documento}

@@ -71,6 +71,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage{listings}
 \usepackage{tikz}
+\usepackage{forest}
 \usetikzlibrary{calc,math,shapes.callouts,shapes.arrows,shapes.geometric,fit,positioning,arrows.meta}
 \usetikzlibrary{positioning,backgrounds}
 \usetikzlibrary{decorations.pathmorphing,math}
@@ -460,18 +461,44 @@ Universidad de Murcia\\
 
 \section{Introducción a los sistemas NoSQL}
 
-%\input nosql
+\input nosql
 
 \section{Tipos de Sistemas NoSQL}
 
 \subsection{Key-Value Stores}
 
-\begin{frame}
-  \frametitle{Key-Value Stores}
+\begin{frame}[fragile,fragile,allowframebreaks]
+  \frametitle{Key/Value Stores}
 \begin{itemize}
 \item A cada pieza de datos se le asigna un identificador
-\item Key-Value: Riak, Redis, Memcached, LevelDB
+\item Como valor se almacena cualquier conjunto de información
+\item El caso de uso estándar es:
+  \begin{itemize}
+  \item {\bf Cachés de acceso} a partes de programas
+  \item Por ejemplo, los iconos de los usuarios de una página, iconos de
+    productos, etc.
+  \end{itemize}
+\item Key-Value: {\bf Riak}, {\bf Redis}, {\bf Memcached}, {\bf LevelDB},
+  {\bf Amazon Dynamo}
 \end{itemize}
+
+\framebreak
+
+\begin{lstlisting}[language=ruby,morekeywords=define]
+define getCustomer(p_customerID):
+  begin
+    if exists(customerCache[p_customerID])
+      return(customerCache[p_customerID])
+    else
+      return(addQueryResultsToCache(p_customerID,
+             'SELECT * FROM customers
+              WHERE customerID = p_CustomerID'))
+    end
+  end
+\end{lstlisting}
+
+(de {\bfseries\itshape NoSQL for Mere Mortals}, Dan Sullivan,
+Addison-Wesley, 2015)
 \end{frame}
 
 \begin{frame}[allowframebreaks]
@@ -479,9 +506,9 @@ Universidad de Murcia\\
 \vspace*{-.9em}
 \begin{itemize}
 \item A cada pieza de datos se le asigna un identificador
-\item La diferencia entre ambas es que:
+\item La diferencia entre las key/value
   \begin{itemize}
-  \item En {\bf Key-Value}, el valor es opaco (es un {\em blob\/})
+  \item En {\bf Key/Value}, el valor es opaco (es un {\em blob\/})
   \item En las documentales, la base de datos puede ver el contenido del
     agregado, y utilizar su información como parte de las búsquedas y
     actualizaciones
@@ -767,7 +794,8 @@ db.productos.find({<criterio>},
 
 \item Se pueden utilizar condicionantes para la búsqueda:
 \begin{lstlisting}
-db.productos.find({"stock" : {"$gt" : 10, "$lte" : 30}})
+db.productos.find({"stock" :
+  {"$gt" : 10, "$lte" : 30}})
 
 db.productos.find({ "$or" :
      [ {"fabricante" : "Samsung" },
@@ -965,18 +993,18 @@ db.observations.mapReduce(
 
 \begin{frame}[fragile,allowframebreaks]
   \frametitle{Map-Reduce}
-  \begin{itemize}
-  \item La función {\tt map\_reduce()} de cada colección permite ejecutar
-    procesamientos que guardan los resultados en otra colección o la
-    devuelven en vivo
-  \item Como el código se ejecuta dentro del motor de la base de datos, hay
-    que enviarle el código en Javascript
-  \item Por ejemplo, cálculo de la valoración media de productos por
-    fabricante:
+%   \begin{itemize}
+%   \item La función {\tt map\_reduce()} de cada colección permite ejecutar
+%     procesamientos que guardan los resultados en otra colección o la
+%     devuelven en vivo
+%   \item Como el código se ejecuta dentro del motor de la base de datos, hay
+%     que enviarle el código en Javascript
+%   \item Por ejemplo, cálculo de la valoración media de productos por
+%     fabricante:
 
-  \end{itemize}
+%   \end{itemize}
 
-\framebreak
+% \framebreak
 \begin{lstlisting}[language=Python]
 from bson.code import Code
 map = Code(
@@ -996,9 +1024,7 @@ results = db.productos.map_reduce(map, reduce, "valoración_media")
 
 \framebreak
 
-\begin{itemize}
-\item La colección {\tt valoración\_media} tendrá valores:
-\end{itemize}
+La colección {\tt valoración\_media} tendrá valores:
 
 \begin{lstlisting}[language=Python]
 [{'_id': 'Samsung', 'value': 4.25},
@@ -1100,6 +1126,39 @@ results = db.productos.map_reduce(map, reduce, "valoración_media")
 % \end{lstlisting}
 
 % \end{frame}
+
+\begin{frame}[allowframebreaks]
+  \frametitle{BD Documentales: Casos de uso}
+  \begin{itemize}
+  \item {\em Drop-in Replacement\/}
+    \begin{itemize}
+    \item Todo lo que se puede hacer con SQL se puede hacer con
+      Documentales
+    \item La eficiencia (tiempo y espacio es similar)
+    \item Ofrecen características de escalabilidad horizontal
+    \end{itemize}
+  \item Trabajo con datos...
+    \begin{itemize}
+    \item Cambiantes, externos, JSON, procedentes de APIs REST
+    \end{itemize}
+  \item Entorno {\bf ágil} (no hace falta esquema)
+
+\framebreak
+
+\item Flexibilidad en el modelo de datos
+    \begin{itemize}
+    \item Utilización de agregados
+    \item Los ORMs también permiten usarlos
+    \item Pero el código que generan a veces {\bf no es óptimo}
+    \item Y {\bf crea deuda técnica con la implementación} (¿mantenimiento,
+      evolución?, etc.)
+    \end{itemize}
+  \item Trabajo con {\bf datos geográficos} (GeoJSON, consultas por
+    proximidad geográfica)
+  \item {\bf Eficiencia} para ciertos tipos de cargas de trabajo (muchas
+    actualizaciones)
+  \end{itemize}
+\end{frame}
 
 \subsection{Bases de Datos Columnares}
 
@@ -1862,6 +1921,31 @@ productos.scan('tv40',columns=['tags:hdmi'])
 %   \end{itemize}
 % \end{frame}
 
+\begin{frame}[allowframebreaks]
+  \frametitle{Columnares: Casos de uso}
+  \begin{itemize}
+  \item Almacenamiento masivo y Acceso aleatorio basado en clave
+    \begin{itemize}
+    \item Almacenamiento sencillo
+    \item Distribución en conjunto de servidores escalable
+    \item Tolerante a fallos
+    \end{itemize}
+  \item Procesamiento analítico
+    \begin{itemize}
+    \item El almacenamiento es por columnas, sólo se recuperan los datos
+      que se usan
+    \item (En SQL los bloques de datos contienen toda la fila)
+    \end{itemize}
+\framebreak
+  \item Procesamiento de series temporales/Datos de IoT
+    \begin{itemize}
+    \item Cada celda puede guardar un histórico de datos
+    \item Existen adaptaciones de HBase (como Accumulo o TSDB) que permiten
+      almacenar y procesar eficientemente series temporales
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
 \subsection{Bases de Datos de Grafos}
 
 \begin{frame}[allowframebreaks]
@@ -2332,6 +2416,85 @@ MATCH p=shortestPath( (u1:Usuario {nombre: "Diego"})-[*]-(u2:Usuario {nombre: "P
   \begin{center}
     \includegraphics[height=.5\textheight]{img/neo4j3}
   \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Grafos: Casos de uso}
+  \begin{itemize}
+  \item Tratamiento de información geográfica
+    \begin{itemize}
+    \item Planificación de rutas
+    \item Optimización de rutas, combustible, etc.
+    \end{itemize}
+  \item Conexiones sociales
+    \begin{itemize}
+    \item Amistad, proximidad geográfica, grupo de edad
+    \end{itemize}
+  \item Integración de fuentes dispares de datos
+    \begin{itemize}
+    \item Integrar información geográfica con información meteorológica
+    \end{itemize}
+  \item Información fuertemente conectada, encontrar conexiones
+    \begin{itemize}
+    \item Papeles de Panamá...
+    \end{itemize}
+  \item {\bf Sistemas de recomendación}
+  \end{itemize}
+\end{frame}
+
+\tikzset{
+Above/.style={
+  midway,
+  above,
+  font=\Tiny,
+  text width=1cm,
+  align=center,
+  },
+Below/.style={
+  midway,
+  below,
+  font=\Tiny,
+  text width=1cm,
+  align=center
+  }
+}
+
+\begin{frame}
+  \frametitle{Decisión}
+  \begin{forest}
+for tree={
+  font=\Tiny,
+  grow'=east,
+  draw=cyan,
+  circle,
+  line width=0.2pt,
+  parent anchor=east,
+  child anchor=west,
+  edge={draw=cyan},
+  edge label={\Tiny\color{black}},
+  edge path={
+    \noexpand\path[\forestoption{edge}]
+      (!u.parent anchor) -- ([xshift=-1.6cm].child anchor) --
+      (.child anchor)\forestoption{edge label};
+  },
+  tier/.pgfmath=level(),
+  l sep=1.8cm,
+}
+[,rectangle, s sep=35pt,
+  [Herramienta impuesta,node options={fill=cyan,text width=1.2cm},edge label={node[Above]{¿Restricciones externas?}}
+  ]
+  [,edge label={node[Below]{Datos homogéneos}}
+    [SQL,node options={fill=cyan},edge
+    label={node[Above]{$\downarrow$ Relaciones}}]
+    [Grafos,node options={fill=cyan},edge
+    label={node[Above]{$\uparrow$ Relaciones}}]
+  ]
+  [,edge label={node[Below]{No Homogéneos}}
+    [SQL+Hacks,node options={fill=cyan},edge label={node[Above]{text}}]
+    [NoSQL,edge label={node[Below]{a longer text goes here}}]
+  ]
+]
+\end{forest}
 \end{frame}
 
 % \begin{frame}[fragile]
