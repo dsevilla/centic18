@@ -2442,60 +2442,60 @@ MATCH p=shortestPath( (u1:Usuario {nombre: "Diego"})-[*]-(u2:Usuario {nombre: "P
   \end{itemize}
 \end{frame}
 
-\tikzset{
-Above/.style={
-  midway,
-  above,
-  font=\Tiny,
-  text width=1cm,
-  align=center,
-  },
-Below/.style={
-  midway,
-  below,
-  font=\Tiny,
-  text width=1cm,
-  align=center
-  }
-}
+% \tikzset{
+% Above/.style={
+%   midway,
+%   above,
+%   font=\Tiny,
+%   text width=1cm,
+%   align=center,
+%   },
+% Below/.style={
+%   midway,
+%   below,
+%   font=\Tiny,
+%   text width=1cm,
+%   align=center
+%   }
+% }
 
-\begin{frame}
-  \frametitle{Decisión}
-  \begin{forest}
-for tree={
-  font=\Tiny,
-  grow'=east,
-  draw=cyan,
-  circle,
-  line width=0.2pt,
-  parent anchor=east,
-  child anchor=west,
-  edge={draw=cyan},
-  edge label={\Tiny\color{black}},
-  edge path={
-    \noexpand\path[\forestoption{edge}]
-      (!u.parent anchor) -- ([xshift=-1.6cm].child anchor) --
-      (.child anchor)\forestoption{edge label};
-  },
-  tier/.pgfmath=level(),
-  l sep=1.8cm,
-}
-[,rectangle, s sep=35pt,
-  [Herramienta impuesta,node options={fill=cyan,text width=1.2cm},edge label={node[Above]{¿Restricciones externas?}}
-  ]
-  [,edge label={node[Below]{Datos homogéneos}}
-    [SQL,node options={fill=cyan},edge
-    label={node[Above]{$\downarrow$ Relaciones}}]
-    [Grafos,node options={fill=cyan},edge
-    label={node[Above]{$\uparrow$ Relaciones}}]
-  ]
-  [,edge label={node[Below]{No Homogéneos}}
-    [SQL+Hacks,node options={fill=cyan},edge label={node[Above]{text}}]
-    [NoSQL,edge label={node[Below]{a longer text goes here}}]
-  ]
-]
-\end{forest}
-\end{frame}
+% \begin{frame}
+%   \frametitle{Decisión}
+%   \begin{forest}
+% for tree={
+%   font=\Tiny,
+%   grow'=east,
+%   draw=cyan,
+%   circle,
+%   line width=0.2pt,
+%   parent anchor=east,
+%   child anchor=west,
+%   edge={draw=cyan},
+%   edge label={\Tiny\color{black}},
+%   edge path={
+%     \noexpand\path[\forestoption{edge}]
+%       (!u.parent anchor) -- ([xshift=-1.6cm].child anchor) --
+%       (.child anchor)\forestoption{edge label};
+%   },
+%   tier/.pgfmath=level(),
+%   l sep=1.8cm,
+% }
+% [,rectangle, s sep=35pt,
+%   [Herramienta impuesta,node options={fill=cyan,text width=1.2cm},edge label={node[Above]{¿Restricciones externas?}}
+%   ]
+%   [,edge label={node[Below]{Datos homogéneos}}
+%     [SQL,node options={fill=cyan},edge
+%     label={node[Above]{$\downarrow$ Relaciones}}]
+%     [Grafos,node options={fill=cyan},edge
+%     label={node[Above]{$\uparrow$ Relaciones}}]
+%   ]
+%   [,edge label={node[Below]{No Homogéneos}}
+%     [SQL+Hacks,node options={fill=cyan},edge label={node[Above]{text}}]
+%     [NoSQL,edge label={node[Below]{a longer text goes here}}]
+%   ]
+% ]
+% \end{forest}
+% \end{frame}
 
 % \begin{frame}[fragile]
 %   \frametitle{Índices}
