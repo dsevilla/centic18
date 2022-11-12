@@ -20,7 +20,8 @@ def yoda(string):
     return herosay(string, yodaimg)
 
 def herosay(string, img):    
-    fontsize = font_small.getsize(string)
+    fontbbox = font_small.getsize(string)
+    fontsize = (fontbbox[2] - fontbbox[0], fontbbox[3] - fontbbox[1])
     imgcp = img.copy()
     ys = imgcp.size
     imgsize = [int(fontsize[0]*scale), int(fontsize[0] * scale * ys[1] / ys[0])]
@@ -37,7 +38,8 @@ def say_(string, font):
     if len(string) == 0:
         return False
     
-    fontsize = font.getsize(string) #The size of the font
+    fontbbox = font.getsize(string) #The size of the font
+    fontsize = (fontbbox[2] - fontbbox[0], fontbbox[3] - fontbbox[1])
     imgsize = [int(fontsize[0] * scale), int(fontsize[1] * scale)]
 
     image = PImage.new('RGB', imgsize) #Create the image
